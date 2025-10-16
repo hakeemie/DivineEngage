@@ -20,6 +20,7 @@ fetch('/cards/cards.json').then(r=>r.json()).then(j=>{ CARDS=j; renderDeckBuilde
 
 function renderDeckBuilder(){
   if(!CARDS) return;
+  deckbuilder.innerHTML = '';
   const div = document.createElement('div');
   const selD = document.createElement('select'); selD.id='divineSelect';
   CARDS.divines.forEach(d=>{ const o=document.createElement('option'); o.value=d.id; o.textContent=d.name+' ('+d.element+')'; selD.appendChild(o); });
@@ -36,10 +37,7 @@ function renderDeckBuilder(){
     const divine = selD.value;
     const followers = Array.from(followerContainer.querySelectorAll('input[type=checkbox]:checked')).map(i=>i.value);
     if(followers.length!==15){ alert('Select exactly 15 followers (currently '+followers.length+')'); return; }
-    socket.emit('generateDeckCode', {divineId:divine, followers}, (res)=>{
-      if(res.error) return alert(res.error);
-      myDeckCode = res.code; prompt('Deck Code (copy to reuse):', res.code);
-    });
+    socket.emit('generateDeckCode', {divineId:divine, followers}, (res)=>{ if(res.error) return alert(res.error); myDeckCode = res.code; prompt('Deck Code (copy to reuse):', res.code); });
   };
   div.appendChild(genBtn); deckbuilder.appendChild(div);
 }
@@ -49,19 +47,12 @@ playBotBtn.onclick = ()=>{
   if(!code) return alert('Provide a deck code or generate one in the deck builder');
   const roomId = 'room_'+Math.random().toString(36).slice(2,8);
   const name = nameInput.value || 'Player';
-  socket.emit('createRoomWithDeck', {roomId, name, deckCode: code, mode:'ai'}, (res)=>{
-    if(res.error) return alert(res.error);
-    currentRoom = roomId; matchStatus.textContent = 'Created room '+roomId+' (vs Bot)';
-  });
+  socket.emit('createRoomWithDeck', {roomId, name, deckCode: code, mode:'ai'}, (res)=>{ if(res.error) return alert(res.error); currentRoom = roomId; matchStatus.textContent = 'Created room '+roomId+' (vs Bot)'; });
 };
 
 socket.on('connect', ()=>{ myId = socket.id; });
 
-socket.on('roomUpdate', (room)=>{
-  if(!room) return;
-  currentRoom = room.id;
-  renderRoom(room);
-});
+socket.on('roomUpdate', (room)=>{ if(!room) return; currentRoom = room.id; renderRoom(room); });
 
 function renderRoom(room){
   matchStatus.textContent = 'Room '+room.id + ' mode: '+room.mode + (room.started? ' (started)':' (waiting)');
@@ -81,7 +72,6 @@ function renderRoom(room){
   });
   deckCounts.textContent = 'Decks: A='+(room.deckCounts?room.deckCounts.A:0)+' B='+(room.deckCounts?room.deckCounts.B:0);
 
-  // table show images of cards on table
   tableDiv.innerHTML = '';
   room.table.forEach(t=>{
     const d = document.createElement('div');
@@ -89,15 +79,33 @@ function renderRoom(room){
     const meta = findCardMeta(t.card);
     const img = document.createElement('img'); img.src = meta? meta.image : ''; img.title = (meta?meta.name:'') + ' — ' + t.playerId;
     tableDiv.appendChild(img);
+    // if table card belongs to me and has optional ability (cost), show activate button
+    if(t.playerId===myId){
+      const meta2 = findCardMeta(t.card);
+      if(meta2 && meta2.ability){
+        const ab = meta2.ability;
+        const btn = document.createElement('button');
+        const cost = ab.cost && Object.keys(ab.cost).length ? (' cost: '+Object.entries(ab.cost).map(([k,v])=>k+v).join(',') ) : '';
+        if(Object.keys(ab.cost||{}).length===0){
+          // auto abilities were applied on play; show label
+          const lbl = document.createElement('span'); lbl.textContent = ' ✨ Auto: '+ab.type + (ab.amount? ' '+ab.amount:''); d.appendChild(lbl);
+        } else {
+          btn.textContent = '⚡ Activate '+ab.type+cost;
+          btn.onclick = ()=>{
+            socket.emit('activateAbility', {roomId: room.id, cardId: t.card}, (res)=>{ if(res && res.error) alert(res.error); });
+          };
+          d.appendChild(btn);
+        }
+      }
+    }
   });
 
-  // show hand images for me
   handDiv.innerHTML = '';
   const me = room.players.find(p=>p.id===myId);
   if(me){
     me.hand.forEach(cid=>{
       const meta = findCardMeta(cid);
-      const img = document.createElement('img'); img.src = meta? meta.image : ''; img.title = meta? meta.name:cid;
+      const img = document.createElement('img'); img.src = meta? meta.image : ''; img.title = meta?meta.name:cid;
       img.onclick = ()=>{ if(!confirm('Play '+(meta?meta.name:cid)+'?')) return; socket.emit('playCard', {roomId: room.id, cardId: cid}, (res)=>{ if(res && res.error) alert(res.error); }); };
       handDiv.appendChild(img);
     });
