@@ -46,7 +46,7 @@ export default function DeckBuilder(){
                 <div key={c.id} className="p-2 bg-slate-900 rounded flex items-center justify-between">
                   <div>
                     <div className="text-sm font-semibold">{c.name} <span className="text-xs ml-2">({c.attack})</span></div>
-                    {c.ability ? <div className="text-xs text-indigo-200">Ability: {c.ability.type} {c.ability.amount || ''}</div> : <div className="text-xs text-slate-400">No ability</div>}
+                    {c.abilities && c.abilities.length>0 ? <div className="text-xs text-indigo-200">Ability: {c.abilities.map(a=>a.type).join(', ')}</div> : <div className="text-xs text-slate-400">No ability</div>}
                   </div>
                   <div>
                     <input type="checkbox" checked={!!selected[c.id]} onChange={()=>toggle(c.id)} />

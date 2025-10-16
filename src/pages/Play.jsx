@@ -1,6 +1,5 @@
 import React, {useEffect, useState, useRef} from 'react'
 import { io } from 'socket.io-client'
-import { decodeDeck } from '../utils/base64.js'
 
 let socket = null
 export default function Play(){
@@ -22,11 +21,13 @@ export default function Play(){
   },[])
 
   function createRoom(){
+    if(!deckCode) return alert('You must paste a deck code before creating a room.')
     const code = Math.random().toString(36).slice(2,7).toUpperCase()
-    socket.emit('createRoomPrivate',{roomId:code}, (res)=>{ if(res.error) return alert(res.error); setLog(l=>[...l,'Room created: '+code]); setRoom({id:code}); })
+    socket.emit('createRoomPrivate',{roomId:code, deckCode}, (res)=>{ if(res.error) return alert(res.error); setLog(l=>[...l,'Room created: '+code]); setRoom({id:code}); })
   }
   function joinRoom(){
-    if(!joinCode) return alert('Enter room code'); socket.emit('joinRoom',{roomId:joinCode}, (res)=>{ if(res.error) return alert(res.error); setLog(l=>[...l,'Joined room: '+joinCode]); })
+    if(!deckCode) return alert('You must paste a deck code before joining a room.')
+    if(!joinCode) return alert('Enter room code'); socket.emit('joinRoom',{roomId:joinCode, deckCode}, (res)=>{ if(res.error) return alert(res.error); setLog(l=>[...l,'Joined room: '+joinCode]); })
   }
 
   function startBot(){
@@ -35,15 +36,8 @@ export default function Play(){
     socket.emit('createRoomWithDeck', {roomId, name:'Player', deckCode, mode:'ai'}, (res)=>{ if(res.error) alert(res.error); else setLog(l=>[...l, 'Match created: '+roomId]) })
   }
 
-  function enterRoomWithDeck(){
-    if(!deckCode) return alert('Paste your deck code')
-    socket.emit('enterRoomWithDeck',{roomId: room.id, deckCode, name:'Player'}, (res)=>{ if(res.error) return alert(res.error); })
-  }
-
   function selectCard(cardId){ setSelectedCard(cardId); setConfirmed(false) }
   function pressConfirm(){ if(!room) return; if(!selectedCard) return alert('Select a card first'); socket.emit('playerConfirm',{roomId:room.id, card:selectedCard}, (res)=>{ if(res.error) return alert(res.error); setConfirmed(true); }) }
-
-  function playCard(cardId){ socket.emit('playCard',{roomId:room.id, cardId}) }
 
   const me = room && room.players ? room.players.find(p=>p.id === (socket && socket.id)) : null
   const opponent = room && room.players ? room.players.find(p=>p.id !== (socket && socket.id)) : null
@@ -52,15 +46,14 @@ export default function Play(){
     <div>
       <div className="card mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <button className="button" onClick={createRoom}>Create Room</button>
+          <button className="button" onClick={createRoom}>Create Room (requires deck)</button>
           <input className="bg-slate-700 p-2 rounded" placeholder="Join code" value={joinCode} onChange={e=>setJoinCode(e.target.value.toUpperCase())} />
-          <button className="button" onClick={joinRoom}>Join Room</button>
+          <button className="button" onClick={joinRoom}>Join Room (requires deck)</button>
           <div className="ml-4">or</div>
           <button className="button" onClick={startBot}>Play vs Bot</button>
         </div>
         <div>
           <input className="bg-slate-700 p-2 rounded mr-2" placeholder="Paste deck code here" value={deckCode} onChange={e=>setDeckCode(e.target.value)} />
-          <button className="button" onClick={enterRoomWithDeck} disabled={!room}>Enter Room with Deck</button>
         </div>
       </div>
 
@@ -84,7 +77,7 @@ export default function Play(){
             </div>
             <div className="flex gap-2 overflow-auto">
               {me && me.hand && me.hand.map(c=> (
-                <div key={c} className={"p-2 rounded "+ (selectedCard===c ? 'ring-2 ring-indigo-400' : 'bg-slate-900')} onClick={()=>selectCard(c)}>
+                <div key={c} className={"p-2 rounded "+ (selectedCard===c ? 'selected' : 'bg-slate-900')} onClick={()=>selectCard(c)}>
                   <div>{c}</div>
                 </div>
               ))}
@@ -106,6 +99,7 @@ export default function Play(){
               </div>
               <div className="mb-2"><strong>Your Hand Size:</strong> {me?me.hand.length:'-'}</div>
               <div className="mb-2"><strong>Deck Counts:</strong> {room?JSON.stringify(room.deckCounts):'-'}</div>
+              <div className="mb-2"><strong>Your Divine Transcended:</strong> {me?String(me.transcended):'-'}</div>
             </div>
           </div>
 
