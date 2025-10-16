@@ -24,598 +24,436 @@
   ],
   "followers": [
     {
-      "id": "F101",
-      "name": "F1 Scout",
-      "element": "fire",
-      "attack": 6,
-      "image": "cards/F101.png",
-      "ability": {
-        "type": "draw",
-        "amount": 1,
-        "cost": {}
-      }
-    },
-    {
-      "id": "F102",
-      "name": "F2 Warrior",
-      "element": "fire",
-      "attack": 6,
-      "image": "cards/F102.png",
-      "ability": {
-        "type": "damage",
-        "amount": 3,
-        "cost": {
-          "fire": 2
-        }
-      }
-    },
-    {
-      "id": "F103",
-      "name": "F3 Sage",
+      "id": "F1",
+      "name": "F1 Card",
       "element": "fire",
       "attack": 2,
-      "image": "cards/F103.png"
+      "image": "cards/F1.png",
+      "ability": null
     },
     {
-      "id": "F104",
-      "name": "F4 Scout",
-      "element": "fire",
-      "attack": 2,
-      "image": "cards/F104.png",
-      "ability": {
-        "type": "damage",
-        "amount": 2,
-        "cost": {}
-      }
-    },
-    {
-      "id": "F105",
-      "name": "F5 Warrior",
-      "element": "fire",
-      "attack": 6,
-      "image": "cards/F105.png",
-      "ability": {
-        "type": "discard",
-        "amount": 1,
-        "cost": {
-          "fire": 1
-        }
-      }
-    },
-    {
-      "id": "F106",
-      "name": "F6 Sage",
-      "element": "fire",
-      "attack": 5,
-      "image": "cards/F106.png"
-    },
-    {
-      "id": "F107",
-      "name": "F7 Scout",
-      "element": "fire",
-      "attack": 1,
-      "image": "cards/F107.png",
-      "ability": {
-        "type": "draw",
-        "amount": 1,
-        "cost": {}
-      }
-    },
-    {
-      "id": "F108",
-      "name": "F8 Warrior",
-      "element": "fire",
-      "attack": 1,
-      "image": "cards/F108.png",
-      "ability": {
-        "type": "damage",
-        "amount": 3,
-        "cost": {
-          "fire": 2
-        }
-      }
-    },
-    {
-      "id": "F109",
-      "name": "F9 Sage",
-      "element": "fire",
-      "attack": 2,
-      "image": "cards/F109.png"
-    },
-    {
-      "id": "F110",
-      "name": "F10 Scout",
-      "element": "fire",
-      "attack": 2,
-      "image": "cards/F110.png",
-      "ability": {
-        "type": "draw",
-        "amount": 1,
-        "cost": {}
-      }
-    },
-    {
-      "id": "F111",
-      "name": "F11 Warrior",
-      "element": "fire",
-      "attack": 1,
-      "image": "cards/F111.png",
-      "ability": {
-        "type": "damage",
-        "amount": 3,
-        "cost": {
-          "fire": 2
-        }
-      }
-    },
-    {
-      "id": "F112",
-      "name": "F12 Sage",
-      "element": "fire",
-      "attack": 6,
-      "image": "cards/F112.png"
-    },
-    {
-      "id": "F113",
-      "name": "F13 Scout",
-      "element": "fire",
-      "attack": 6,
-      "image": "cards/F113.png",
-      "ability": {
-        "type": "damage",
-        "amount": 2,
-        "cost": {}
-      }
-    },
-    {
-      "id": "F114",
-      "name": "F14 Warrior",
-      "element": "fire",
-      "attack": 4,
-      "image": "cards/F114.png",
-      "ability": {
-        "type": "damage",
-        "amount": 3,
-        "cost": {
-          "fire": 2
-        }
-      }
-    },
-    {
-      "id": "F115",
-      "name": "F15 Sage",
-      "element": "fire",
-      "attack": 5,
-      "image": "cards/F115.png"
-    },
-    {
-      "id": "F116",
-      "name": "F16 Scout",
-      "element": "fire",
-      "attack": 3,
-      "image": "cards/F116.png",
-      "ability": {
-        "type": "damage",
-        "amount": 2,
-        "cost": {}
-      }
-    },
-    {
-      "id": "F117",
-      "name": "F17 Warrior",
-      "element": "fire",
-      "attack": 1,
-      "image": "cards/F117.png",
-      "ability": {
-        "type": "discard",
-        "amount": 1,
-        "cost": {
-          "fire": 1
-        }
-      }
-    },
-    {
-      "id": "F118",
-      "name": "F18 Sage",
-      "element": "fire",
-      "attack": 2,
-      "image": "cards/F118.png"
-    },
-    {
-      "id": "F119",
-      "name": "W1 Scout",
-      "element": "water",
-      "attack": 6,
-      "image": "cards/F119.png",
-      "ability": {
-        "type": "draw",
-        "amount": 1,
-        "cost": {}
-      }
-    },
-    {
-      "id": "F120",
-      "name": "W2 Warrior",
-      "element": "water",
-      "attack": 3,
-      "image": "cards/F120.png",
-      "ability": {
-        "type": "damage",
-        "amount": 3,
-        "cost": {
-          "water": 2
-        }
-      }
-    },
-    {
-      "id": "F121",
-      "name": "W3 Sage",
-      "element": "water",
-      "attack": 3,
-      "image": "cards/F121.png"
-    },
-    {
-      "id": "F122",
-      "name": "W4 Scout",
-      "element": "water",
-      "attack": 1,
-      "image": "cards/F122.png",
-      "ability": {
-        "type": "draw",
-        "amount": 1,
-        "cost": {}
-      }
-    },
-    {
-      "id": "F123",
-      "name": "W5 Warrior",
-      "element": "water",
-      "attack": 1,
-      "image": "cards/F123.png",
-      "ability": {
-        "type": "damage",
-        "amount": 3,
-        "cost": {
-          "water": 2
-        }
-      }
-    },
-    {
-      "id": "F124",
-      "name": "W6 Sage",
-      "element": "water",
-      "attack": 3,
-      "image": "cards/F124.png"
-    },
-    {
-      "id": "F125",
-      "name": "W7 Scout",
+      "id": "F2",
+      "name": "W2 Card",
       "element": "water",
       "attack": 5,
-      "image": "cards/F125.png",
-      "ability": {
-        "type": "draw",
-        "amount": 1,
-        "cost": {}
-      }
+      "image": "cards/F2.png",
+      "ability": null
     },
     {
-      "id": "F126",
-      "name": "W8 Warrior",
+      "id": "F3",
+      "name": "G3 Card",
+      "element": "grass",
+      "attack": 5,
+      "image": "cards/F3.png",
+      "ability": null
+    },
+    {
+      "id": "F4",
+      "name": "F4 Card",
+      "element": "fire",
+      "attack": 2,
+      "image": "cards/F4.png",
+      "ability": null
+    },
+    {
+      "id": "F5",
+      "name": "W5 Card",
       "element": "water",
-      "attack": 1,
-      "image": "cards/F126.png",
-      "ability": {
-        "type": "discard",
-        "amount": 1,
-        "cost": {
-          "water": 1
-        }
-      }
+      "attack": 3,
+      "image": "cards/F5.png",
+      "ability": null
     },
     {
-      "id": "F127",
-      "name": "W9 Sage",
+      "id": "F6",
+      "name": "G6 Card",
+      "element": "grass",
+      "attack": 5,
+      "image": "cards/F6.png",
+      "ability": null
+    },
+    {
+      "id": "F7",
+      "name": "F7 Card",
+      "element": "fire",
+      "attack": 4,
+      "image": "cards/F7.png",
+      "ability": null
+    },
+    {
+      "id": "F8",
+      "name": "W8 Card",
+      "element": "water",
+      "attack": 6,
+      "image": "cards/F8.png",
+      "ability": null
+    },
+    {
+      "id": "F9",
+      "name": "G9 Card",
+      "element": "grass",
+      "attack": 5,
+      "image": "cards/F9.png",
+      "ability": null
+    },
+    {
+      "id": "F10",
+      "name": "F10 Card",
+      "element": "fire",
+      "attack": 1,
+      "image": "cards/F10.png",
+      "ability": null
+    },
+    {
+      "id": "F11",
+      "name": "W11 Card",
       "element": "water",
       "attack": 5,
-      "image": "cards/F127.png"
+      "image": "cards/F11.png",
+      "ability": null
     },
     {
-      "id": "F128",
-      "name": "W10 Scout",
-      "element": "water",
+      "id": "F12",
+      "name": "G12 Card",
+      "element": "grass",
       "attack": 1,
-      "image": "cards/F128.png",
-      "ability": {
-        "type": "damage",
-        "amount": 2,
-        "cost": {}
-      }
+      "image": "cards/F12.png",
+      "ability": null
     },
     {
-      "id": "F129",
-      "name": "W11 Warrior",
+      "id": "F13",
+      "name": "F13 Card",
+      "element": "fire",
+      "attack": 4,
+      "image": "cards/F13.png",
+      "ability": null
+    },
+    {
+      "id": "F14",
+      "name": "W14 Card",
+      "element": "water",
+      "attack": 3,
+      "image": "cards/F14.png",
+      "ability": null
+    },
+    {
+      "id": "F15",
+      "name": "G15 Card",
+      "element": "grass",
+      "attack": 5,
+      "image": "cards/F15.png",
+      "ability": null
+    },
+    {
+      "id": "F16",
+      "name": "F16 Card",
+      "element": "fire",
+      "attack": 2,
+      "image": "cards/F16.png",
+      "ability": null
+    },
+    {
+      "id": "F17",
+      "name": "W17 Card",
+      "element": "water",
+      "attack": 2,
+      "image": "cards/F17.png",
+      "ability": null
+    },
+    {
+      "id": "F18",
+      "name": "G18 Card",
+      "element": "grass",
+      "attack": 6,
+      "image": "cards/F18.png",
+      "ability": null
+    },
+    {
+      "id": "F19",
+      "name": "F19 Card",
+      "element": "fire",
+      "attack": 4,
+      "image": "cards/F19.png",
+      "ability": null
+    },
+    {
+      "id": "F20",
+      "name": "W20 Card",
+      "element": "water",
+      "attack": 5,
+      "image": "cards/F20.png",
+      "ability": null
+    },
+    {
+      "id": "F21",
+      "name": "G21 Card",
+      "element": "grass",
+      "attack": 5,
+      "image": "cards/F21.png",
+      "ability": null
+    },
+    {
+      "id": "F22",
+      "name": "F22 Card",
+      "element": "fire",
+      "attack": 4,
+      "image": "cards/F22.png",
+      "ability": null
+    },
+    {
+      "id": "F23",
+      "name": "W23 Card",
       "element": "water",
       "attack": 4,
-      "image": "cards/F129.png",
-      "ability": {
-        "type": "damage",
-        "amount": 3,
-        "cost": {
-          "water": 2
-        }
-      }
+      "image": "cards/F23.png",
+      "ability": null
     },
     {
-      "id": "F130",
-      "name": "W12 Sage",
-      "element": "water",
-      "attack": 3,
-      "image": "cards/F130.png"
-    },
-    {
-      "id": "F131",
-      "name": "W13 Scout",
-      "element": "water",
-      "attack": 6,
-      "image": "cards/F131.png",
-      "ability": {
-        "type": "damage",
-        "amount": 2,
-        "cost": {}
-      }
-    },
-    {
-      "id": "F132",
-      "name": "W14 Warrior",
-      "element": "water",
-      "attack": 3,
-      "image": "cards/F132.png",
-      "ability": {
-        "type": "damage",
-        "amount": 3,
-        "cost": {
-          "water": 2
-        }
-      }
-    },
-    {
-      "id": "F133",
-      "name": "W15 Sage",
-      "element": "water",
-      "attack": 6,
-      "image": "cards/F133.png"
-    },
-    {
-      "id": "F134",
-      "name": "W16 Scout",
-      "element": "water",
-      "attack": 1,
-      "image": "cards/F134.png",
-      "ability": {
-        "type": "draw",
-        "amount": 1,
-        "cost": {}
-      }
-    },
-    {
-      "id": "F135",
-      "name": "W17 Warrior",
-      "element": "water",
-      "attack": 2,
-      "image": "cards/F135.png",
-      "ability": {
-        "type": "discard",
-        "amount": 1,
-        "cost": {
-          "water": 1
-        }
-      }
-    },
-    {
-      "id": "F136",
-      "name": "W18 Sage",
-      "element": "water",
-      "attack": 1,
-      "image": "cards/F136.png"
-    },
-    {
-      "id": "F137",
-      "name": "G1 Scout",
+      "id": "F24",
+      "name": "G24 Card",
       "element": "grass",
-      "attack": 2,
-      "image": "cards/F137.png",
-      "ability": {
-        "type": "damage",
-        "amount": 2,
-        "cost": {}
-      }
+      "attack": 6,
+      "image": "cards/F24.png",
+      "ability": null
     },
     {
-      "id": "F138",
-      "name": "G2 Warrior",
+      "id": "F25",
+      "name": "F25 Card",
+      "element": "fire",
+      "attack": 2,
+      "image": "cards/F25.png",
+      "ability": null
+    },
+    {
+      "id": "F26",
+      "name": "W26 Card",
+      "element": "water",
+      "attack": 2,
+      "image": "cards/F26.png",
+      "ability": null
+    },
+    {
+      "id": "F27",
+      "name": "G27 Card",
+      "element": "grass",
+      "attack": 6,
+      "image": "cards/F27.png",
+      "ability": null
+    },
+    {
+      "id": "F28",
+      "name": "F28 Card",
+      "element": "fire",
+      "attack": 2,
+      "image": "cards/F28.png",
+      "ability": null
+    },
+    {
+      "id": "F29",
+      "name": "W29 Card",
+      "element": "water",
+      "attack": 5,
+      "image": "cards/F29.png",
+      "ability": null
+    },
+    {
+      "id": "F30",
+      "name": "G30 Card",
       "element": "grass",
       "attack": 4,
-      "image": "cards/F138.png",
-      "ability": {
-        "type": "damage",
-        "amount": 3,
-        "cost": {
-          "grass": 2
-        }
-      }
+      "image": "cards/F30.png",
+      "ability": null
     },
     {
-      "id": "F139",
-      "name": "G3 Sage",
+      "id": "F31",
+      "name": "F31 Card",
+      "element": "fire",
+      "attack": 6,
+      "image": "cards/F31.png",
+      "ability": null
+    },
+    {
+      "id": "F32",
+      "name": "W32 Card",
+      "element": "water",
+      "attack": 1,
+      "image": "cards/F32.png",
+      "ability": null
+    },
+    {
+      "id": "F33",
+      "name": "G33 Card",
       "element": "grass",
       "attack": 6,
-      "image": "cards/F139.png"
+      "image": "cards/F33.png",
+      "ability": null
     },
     {
-      "id": "F140",
-      "name": "G4 Scout",
-      "element": "grass",
-      "attack": 3,
-      "image": "cards/F140.png",
-      "ability": {
-        "type": "draw",
-        "amount": 1,
-        "cost": {}
-      }
+      "id": "F34",
+      "name": "F34 Card",
+      "element": "fire",
+      "attack": 1,
+      "image": "cards/F34.png",
+      "ability": null
     },
     {
-      "id": "F141",
-      "name": "G5 Warrior",
-      "element": "grass",
-      "attack": 3,
-      "image": "cards/F141.png",
-      "ability": {
-        "type": "damage",
-        "amount": 3,
-        "cost": {
-          "grass": 2
-        }
-      }
-    },
-    {
-      "id": "F142",
-      "name": "G6 Sage",
-      "element": "grass",
-      "attack": 3,
-      "image": "cards/F142.png"
-    },
-    {
-      "id": "F143",
-      "name": "G7 Scout",
-      "element": "grass",
-      "attack": 6,
-      "image": "cards/F143.png",
-      "ability": {
-        "type": "damage",
-        "amount": 2,
-        "cost": {}
-      }
-    },
-    {
-      "id": "F144",
-      "name": "G8 Warrior",
-      "element": "grass",
-      "attack": 6,
-      "image": "cards/F144.png",
-      "ability": {
-        "type": "damage",
-        "amount": 3,
-        "cost": {
-          "grass": 2
-        }
-      }
-    },
-    {
-      "id": "F145",
-      "name": "G9 Sage",
-      "element": "grass",
-      "attack": 6,
-      "image": "cards/F145.png"
-    },
-    {
-      "id": "F146",
-      "name": "G10 Scout",
-      "element": "grass",
+      "id": "F35",
+      "name": "W35 Card",
+      "element": "water",
       "attack": 2,
-      "image": "cards/F146.png",
-      "ability": {
-        "type": "draw",
-        "amount": 1,
-        "cost": {}
-      }
+      "image": "cards/F35.png",
+      "ability": null
     },
     {
-      "id": "F147",
-      "name": "G11 Warrior",
+      "id": "F36",
+      "name": "G36 Card",
       "element": "grass",
-      "attack": 2,
-      "image": "cards/F147.png",
-      "ability": {
-        "type": "damage",
-        "amount": 3,
-        "cost": {
-          "grass": 2
-        }
-      }
+      "attack": 5,
+      "image": "cards/F36.png",
+      "ability": null
     },
     {
-      "id": "F148",
-      "name": "G12 Sage",
+      "id": "F37",
+      "name": "F37 Card",
+      "element": "fire",
+      "attack": 1,
+      "image": "cards/F37.png",
+      "ability": null
+    },
+    {
+      "id": "F38",
+      "name": "W38 Card",
+      "element": "water",
+      "attack": 3,
+      "image": "cards/F38.png",
+      "ability": null
+    },
+    {
+      "id": "F39",
+      "name": "G39 Card",
       "element": "grass",
+      "attack": 1,
+      "image": "cards/F39.png",
+      "ability": null
+    },
+    {
+      "id": "F40",
+      "name": "F40 Card",
+      "element": "fire",
+      "attack": 3,
+      "image": "cards/F40.png",
+      "ability": null
+    },
+    {
+      "id": "F41",
+      "name": "W41 Card",
+      "element": "water",
       "attack": 4,
-      "image": "cards/F148.png"
+      "image": "cards/F41.png",
+      "ability": null
     },
     {
-      "id": "F149",
-      "name": "G13 Scout",
+      "id": "F42",
+      "name": "G42 Card",
       "element": "grass",
-      "attack": 3,
-      "image": "cards/F149.png",
-      "ability": {
-        "type": "damage",
-        "amount": 2,
-        "cost": {}
-      }
+      "attack": 5,
+      "image": "cards/F42.png",
+      "ability": null
     },
     {
-      "id": "F150",
-      "name": "G14 Warrior",
+      "id": "F43",
+      "name": "F43 Card",
+      "element": "fire",
+      "attack": 6,
+      "image": "cards/F43.png",
+      "ability": null
+    },
+    {
+      "id": "F44",
+      "name": "W44 Card",
+      "element": "water",
+      "attack": 4,
+      "image": "cards/F44.png",
+      "ability": null
+    },
+    {
+      "id": "F45",
+      "name": "G45 Card",
       "element": "grass",
       "attack": 6,
-      "image": "cards/F150.png",
-      "ability": {
-        "type": "discard",
-        "amount": 1,
-        "cost": {
-          "grass": 1
-        }
-      }
+      "image": "cards/F45.png",
+      "ability": null
     },
     {
-      "id": "F151",
-      "name": "G15 Sage",
+      "id": "F46",
+      "name": "F46 Card",
+      "element": "fire",
+      "attack": 4,
+      "image": "cards/F46.png",
+      "ability": null
+    },
+    {
+      "id": "F47",
+      "name": "W47 Card",
+      "element": "water",
+      "attack": 4,
+      "image": "cards/F47.png",
+      "ability": null
+    },
+    {
+      "id": "F48",
+      "name": "G48 Card",
+      "element": "grass",
+      "attack": 6,
+      "image": "cards/F48.png",
+      "ability": null
+    },
+    {
+      "id": "F49",
+      "name": "F49 Card",
+      "element": "fire",
+      "attack": 5,
+      "image": "cards/F49.png",
+      "ability": null
+    },
+    {
+      "id": "F50",
+      "name": "W50 Card",
+      "element": "water",
+      "attack": 4,
+      "image": "cards/F50.png",
+      "ability": null
+    },
+    {
+      "id": "F51",
+      "name": "G51 Card",
       "element": "grass",
       "attack": 2,
-      "image": "cards/F151.png"
+      "image": "cards/F51.png",
+      "ability": null
     },
     {
-      "id": "F152",
-      "name": "G16 Scout",
-      "element": "grass",
-      "attack": 6,
-      "image": "cards/F152.png",
-      "ability": {
-        "type": "draw",
-        "amount": 1,
-        "cost": {}
-      }
+      "id": "F52",
+      "name": "F52 Card",
+      "element": "fire",
+      "attack": 3,
+      "image": "cards/F52.png",
+      "ability": null
     },
     {
-      "id": "F153",
-      "name": "G17 Warrior",
+      "id": "F53",
+      "name": "W53 Card",
+      "element": "water",
+      "attack": 1,
+      "image": "cards/F53.png",
+      "ability": null
+    },
+    {
+      "id": "F54",
+      "name": "G54 Card",
       "element": "grass",
       "attack": 1,
-      "image": "cards/F153.png",
-      "ability": {
-        "type": "damage",
-        "amount": 3,
-        "cost": {
-          "grass": 2
-        }
-      }
-    },
-    {
-      "id": "F154",
-      "name": "G18 Sage",
-      "element": "grass",
-      "attack": 1,
-      "image": "cards/F154.png"
+      "image": "cards/F54.png",
+      "ability": null
     }
   ]
 }
