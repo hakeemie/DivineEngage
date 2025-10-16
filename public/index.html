@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Online Card Game</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body { font-family: system-ui, sans-serif; background:#0f1720; color:#e6edf3; margin:0; padding:20px; }
+    .container{max-width:900px;margin:0 auto;}
+    header{display:flex;gap:10px;align-items:center;justify-content:space-between}
+    .box{background:#0b1220;padding:16px;border-radius:8px;margin-top:12px}
+    button{padding:8px 12px;border-radius:8px;border:0;background:#1f2937;color:#fff;cursor:pointer}
+    input{padding:8px;border-radius:6px;border:1px solid #253139;background:#071018;color:#e6edf3}
+    .hand span{display:inline-block;padding:6px 8px;margin:4px;background:#12202a;border-radius:6px}
+    .player{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed #123}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Online Card Game</h1>
+      <div>
+        <input id="name" placeholder="Your name" />
+        <input id="room" placeholder="Room ID" style="width:140px" />
+        <button id="create">Create</button>
+        <button id="join">Join</button>
+      </div>
+    </header>
+
+    <div class="box" id="lobby">
+      <strong>Lobby</strong>
+      <div id="players"></div>
+      <p>Deck: <span id="deckCount">0</span></p>
+      <button id="ready">Toggle Ready / Start</button>
+    </div>
+
+    <div class="box" id="game" style="display:none">
+      <strong>Game</strong>
+      <p>State: <span id="state"></span></p>
+      <p>Turn: <span id="turn"></span></p>
+      <div>
+        <button id="draw">Draw</button>
+        <button id="leave">Leave Room</button>
+      </div>
+      <h3>Your Hand</h3>
+      <div class="hand" id="hand"></div>
+      <h3>Table</h3>
+      <div id="table"></div>
+    </div>
+
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="client.js"></script>
+</body>
+</html>
