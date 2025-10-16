@@ -1,117 +1,92 @@
 import React, {useEffect, useState, useRef} from 'react'
 import { io } from 'socket.io-client'
+import { decodeDeck } from '../utils/base64.js'
+import cardsData from '../data/cards.js'
 
-let socket = null
+let socket = null;
 export default function Play(){
-  const [connected, setConnected] = useState(false)
   const [room, setRoom] = useState(null)
   const [deckCode, setDeckCode] = useState('')
-  const [log, setLog] = useState([])
+  const [joinCode, setJoinCode] = useState('')
   const [selectedCard, setSelectedCard] = useState(null)
   const [confirmed, setConfirmed] = useState(false)
-  const [joinCode, setJoinCode] = useState('')
-  const roomRef = useRef(null)
+  const [log, setLog] = useState([])
+  const meId = useRef(null)
 
   useEffect(()=>{
-    socket = io() // connect to same origin
-    socket.on('connect', ()=> setConnected(true))
-    socket.on('roomUpdate', r=>{ setRoom(r); roomRef.current = r; if(r && r.table){ const msgs = r.table.filter(t=>t.system).map(t=>t.system); if(msgs.length) setLog(l=>[...l,...msgs].slice(-200)); } })
-    socket.on('roomLog', m=> setLog(l=>[...l,m].slice(-200)))
-    return ()=>{ socket && socket.disconnect(); socket=null }
+    socket = io()
+    socket.on('connect', ()=> meId.current = socket.id)
+    socket.on('roomUpdate', r=> setRoom(r))
+    socket.on('roomCreated', d=> setLog(l=>[...l,'Room created '+d.roomId]))
+    socket.on('gameStart', d=> setLog(l=>[...l,d.message]))
+    socket.on('roomUpdate', r=> setRoom(r))
+    socket.on('gameOver', g=> setLog(l=>[...l,'Game Over: '+JSON.stringify(g)]))
+    return ()=> { socket && socket.disconnect(); socket = null }
   },[])
 
   function createRoom(){
-    if(!deckCode) return alert('You must paste a deck code before creating a room.')
-    const code = Math.random().toString(36).slice(2,7).toUpperCase()
-    socket.emit('createRoomPrivate',{roomId:code, deckCode}, (res)=>{ if(res.error) return alert(res.error); setLog(l=>[...l,'Room created: '+code]); setRoom({id:code}); })
+    if(!deckCode) return alert('Paste deck code first')
+    const arr = decodeDeck(deckCode)
+    if(!arr || arr.length!==16) return alert('Invalid deck code (must be 16 entries: 1 divine + 15 followers)')
+    const divine = arr[0]; const followers = arr.slice(1)
+    const roomId = Math.random().toString(36).slice(2,7).toUpperCase()
+    socket.emit('createRoom', { roomId, deck: followers, divine })
+    setRoom({ id: roomId })
   }
-  function joinRoom(){
-    if(!deckCode) return alert('You must paste a deck code before joining a room.')
-    if(!joinCode) return alert('Enter room code'); socket.emit('joinRoom',{roomId:joinCode, deckCode}, (res)=>{ if(res.error) return alert(res.error); setLog(l=>[...l,'Joined room: '+joinCode]); })
-  }
+  function joinRoom(){ if(!deckCode) return alert('Paste deck code first'); if(!joinCode) return alert('Enter room id'); const arr = decodeDeck(deckCode); if(!arr || arr.length!==16) return alert('Invalid deck code'); socket.emit('joinRoom', { roomId: joinCode, deck: arr.slice(1), divine: arr[0] }) }
+  function startBot(){ if(!deckCode) return alert('Paste deck code first'); socket.emit('createRoomWithDeck', { roomId: 'bot_'+Math.random().toString(36).slice(2,8), name:'Player', deckCode }) }
+  function selectCard(c){ setSelectedCard(c); setConfirmed(false) }
+  function confirm(){ if(!selectedCard) return alert('Select a card'); socket.emit('playerConfirm', { roomId: room.id, card: selectedCard }, (res)=>{ if(res && res.error) alert(res.error); else setConfirmed(true) }) }
 
-  function startBot(){
-    if(!deckCode) return alert('Paste a deck code first (from deck builder)')
-    const roomId = 'room_'+Math.random().toString(36).slice(2,8)
-    socket.emit('createRoomWithDeck', {roomId, name:'Player', deckCode, mode:'ai'}, (res)=>{ if(res.error) alert(res.error); else setLog(l=>[...l, 'Match created: '+roomId]) })
-  }
+  const me = room && room.players ? room.players.find(p=>p.id===socket?.id) : null
+  const opponent = room && room.players ? room.players.find(p=>p.id!==socket?.id) : null
+  function getCardInfo(id){ return cardsData.followers.find(f=>f.id===id) || cardsData.divines.find(d=>d.id===id) || {name:id, image:'/cards/placeholder.png'} }
 
-  function selectCard(cardId){ setSelectedCard(cardId); setConfirmed(false) }
-  function pressConfirm(){ if(!room) return; if(!selectedCard) return alert('Select a card first'); socket.emit('playerConfirm',{roomId:room.id, card:selectedCard}, (res)=>{ if(res.error) return alert(res.error); setConfirmed(true); }) }
+  return (<div>
+    <div className='card' style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+      <div style={{display:'flex',gap:8}}>
+        <button className='button' onClick={createRoom}>Create Room (deck required)</button>
+        <input placeholder='Join code' value={joinCode} onChange={e=>setJoinCode(e.target.value.toUpperCase())} />
+        <button className='button' onClick={joinRoom}>Join Room</button>
+        <div style={{marginLeft:12}}>or</div>
+        <button className='button' onClick={startBot}>Play vs Bot</button>
+      </div>
+      <div><input placeholder='Paste deck code here' value={deckCode} onChange={e=>setDeckCode(e.target.value)} /></div>
+    </div>
 
-  const me = room && room.players ? room.players.find(p=>p.id === (socket && socket.id)) : null
-  const opponent = room && room.players ? room.players.find(p=>p.id !== (socket && socket.id)) : null
-
-  return (
-    <div>
-      <div className="card mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <button className="button" onClick={createRoom}>Create Room (requires deck)</button>
-          <input className="bg-slate-700 p-2 rounded" placeholder="Join code" value={joinCode} onChange={e=>setJoinCode(e.target.value.toUpperCase())} />
-          <button className="button" onClick={joinRoom}>Join Room (requires deck)</button>
-          <div className="ml-4">or</div>
-          <button className="button" onClick={startBot}>Play vs Bot</button>
-        </div>
-        <div>
-          <input className="bg-slate-700 p-2 rounded mr-2" placeholder="Paste deck code here" value={deckCode} onChange={e=>setDeckCode(e.target.value)} />
+    <div className='card' style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginTop:12}}>
+      <div style={{width:160,textAlign:'center'}}>
+        <div>Your Divine</div>
+        {me && <img src={getCardInfo(me.divine).image} alt='' style={{width:100,height:140}} />}
+        <div>HP: {me?me.divineHP:'-'}</div>
+        <div>Runes: {me?`🔥${me.runes.fire||0} 💧${me.runes.water||0} 🌿${me.runes.grass||0}`:'-'}</div>
+      </div>
+      <div style={{flex:1,marginLeft:12,marginRight:12}}>
+        <div style={{minHeight:140,display:'flex',alignItems:'center',justifyContent:'center',gap:20}}>
+          <div>Opponent Card<br/>{opponent && opponent.engage ? <img src={getCardInfo(opponent.engage).image} style={{width:100,height:140}} /> : <div style={{width:100,height:140,background:'#071024'}}/>}</div>
+          <div>Engage Zone<br/>Cards will clash here</div>
+          <div>Your Card<br/>{me && me.engage ? <img src={getCardInfo(me.engage).image} style={{width:100,height:140}} /> : <div style={{width:100,height:140,background:'#071024'}}/>}</div>
         </div>
       </div>
-
-      <div className="grid grid-cols-12 gap-4">
-        <div className="col-span-9">
-          <div className="card mb-4">
-            <h3 className="text-lg">Opponent (Top)</h3>
-            <div className="flex items-center justify-between">
-              <div><strong>{opponent?opponent.name:'-'}</strong><br/>HP: {opponent?opponent.divineHP:'-'}</div>
-              <div>Runes: {opponent?JSON.stringify(opponent.runes):'-'}</div>
-            </div>
-            <div className="mt-2 p-2 bg-slate-900 rounded min-h-[100px]">
-              {room && room.table && room.table.map((t,i)=> <div key={i}>{t.system ? t.system : t.playerId + ' played ' + t.card}</div>)}
-            </div>
-          </div>
-
-          <div className="card">
-            <h3 className="text-lg">Your Play Area (Bottom)</h3>
-            <div className="min-h-[120px] p-2 bg-slate-900 rounded mb-4">
-              {me && me.hand && <div className="text-sm">Hand size: {me.hand.length}</div>}
-            </div>
-            <div className="flex gap-2 overflow-auto">
-              {me && me.hand && me.hand.map(c=> (
-                <div key={c} className={"p-2 rounded "+ (selectedCard===c ? 'selected' : 'bg-slate-900')} onClick={()=>selectCard(c)}>
-                  <div>{c}</div>
-                </div>
-              ))}
-            </div>
-            <div className="mt-2 flex items-center gap-2">
-              <button className="button" onClick={pressConfirm} disabled={!selectedCard || confirmed}>{confirmed ? 'Confirmed' : 'Confirm'}</button>
-              <div className="text-sm text-slate-400">Select a card then Confirm. Both players must confirm to resolve the round.</div>
-            </div>
-          </div>
-        </div>
-
-        <div className="col-span-3">
-          <div className="card mb-4">
-            <h3 className="text-lg">Game State</h3>
-            <div className="mt-2">
-              <div className="mb-2"><strong>Your Divine HP:</strong> {me?me.divineHP:'-'}</div>
-              <div className="mb-2"><strong>Your Runes:</strong>
-                {me ? <span className="ml-2"><span className="rune">🔥 {me.runes?.fire||0}</span> <span className="rune">💧 {me.runes?.water||0}</span> <span className="rune">🌿 {me.runes?.grass||0}</span></span> : '-'}
-              </div>
-              <div className="mb-2"><strong>Your Hand Size:</strong> {me?me.hand.length:'-'}</div>
-              <div className="mb-2"><strong>Deck Counts:</strong> {room?JSON.stringify(room.deckCounts):'-'}</div>
-              <div className="mb-2"><strong>Your Divine Transcended:</strong> {me?String(me.transcended):'-'}</div>
-            </div>
-          </div>
-
-          <div className="card">
-            <h3 className="text-lg">Turn History</h3>
-            <div className="max-h-96 overflow-auto space-y-2">
-              {log.length===0 && <div className="text-slate-400">No actions yet</div>}
-              {log.map((l,i)=> <div key={i} className="p-2 rounded">{l}</div>)}
-            </div>
-          </div>
-        </div>
+      <div style={{width:160,textAlign:'center'}}>
+        <div>Opponent Divine</div>
+        {opponent && <img src={getCardInfo(opponent.divine).image} alt='' style={{width:100,height:140}} />}
+        <div>HP: {opponent?opponent.divineHP:'-'}</div>
+        <div>Runes: {opponent?`🔥${opponent.runes.fire||0} 💧${opponent.runes.water||0} 🌿${opponent.runes.grass||0}`:'-'}</div>
       </div>
     </div>
-  )
+
+    <div className='card' style={{marginTop:12}}>
+      <h3>Your Hand</h3>
+      <div style={{display:'flex',gap:8,overflow:'auto'}}>
+        {me && me.hand && me.hand.map(c=> { const ci = getCardInfo(c); return (<div key={c} style={{width:96}} onClick={()=>selectCard(c)}><img src={ci.image} style={{width:96,height:128}} /><div style={{fontSize:12}}>{ci.name}</div></div>) })}
+      </div>
+      <div style={{marginTop:8}}><button className='button' onClick={confirm} disabled={!selectedCard || confirmed}>{confirmed?'Confirmed':'Confirm'}</button></div>
+    </div>
+
+    <div className='card' style={{marginTop:12}}>
+      <h3>Log</h3>
+      <div>{log.map((l,i)=>(<div key={i}>{String(l)}</div>))}</div>
+    </div>
+  </div>)
 }
