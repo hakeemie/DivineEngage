@@ -1,0 +1,83 @@
+{
+  "divines": [
+    {
+      "id": "D1",
+      "name": "Pyre Divine",
+      "element": "fire",
+      "hp": 30,
+      "image": "cards/pyre.png"
+    },
+    {
+      "id": "D2",
+      "name": "Tide Divine",
+      "element": "water",
+      "hp": 30,
+      "image": "cards/tide.png"
+    },
+    {
+      "id": "D3",
+      "name": "Verdant Divine",
+      "element": "grass",
+      "hp": 30,
+      "image": "cards/verdant.png"
+    }
+  ],
+  "followers": [
+    {
+      "id": "F1",
+      "name": "Flame Acolyte",
+      "element": "fire",
+      "attack": 2,
+      "image": "cards/f1.png"
+    },
+    {
+      "id": "F2",
+      "name": "Cinder Guard",
+      "element": "fire",
+      "attack": 3,
+      "image": "cards/f2.png"
+    },
+    {
+      "id": "F3",
+      "name": "Sprigling",
+      "element": "grass",
+      "attack": 1,
+      "image": "cards/f3.png"
+    },
+    {
+      "id": "F4",
+      "name": "Bramble Rider",
+      "element": "grass",
+      "attack": 2,
+      "image": "cards/f4.png"
+    },
+    {
+      "id": "F5",
+      "name": "Rill Sprite",
+      "element": "water",
+      "attack": 2,
+      "image": "cards/f5.png"
+    },
+    {
+      "id": "F6",
+      "name": "Torrent Warden",
+      "element": "water",
+      "attack": 3,
+      "image": "cards/f6.png"
+    },
+    {
+      "id": "F7",
+      "name": "Ember Scout",
+      "element": "fire",
+      "attack": 1,
+      "image": "cards/f7.png"
+    },
+    {
+      "id": "F8",
+      "name": "Leafknight",
+      "element": "grass",
+      "attack": 3,
+      "image": "cards/f8.png"
+    }
+  ]
+}

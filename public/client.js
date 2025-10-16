@@ -1,134 +1,112 @@
 const socket = io();
 let currentRoom = null;
 let myId = null;
+let myDeckCode = null;
+let CARDS = null;
 
-const el = id => document.getElementById(id);
-const nameInput = el("name");
-const roomInput = el("room");
-const createBtn = el("create");
-const joinBtn = el("join");
-const playersEl = el("players");
-const deckCountEl = el("deckCount");
-const readyBtn = el("ready");
-const gameBox = el("game");
-const lobbyBox = el("lobby");
-const stateEl = el("state");
-const turnEl = el("turn");
-const drawBtn = el("draw");
-const handEl = el("hand");
-const tableEl = el("table");
-const leaveBtn = el("leave");
+const deckbuilder = document.getElementById('deckbuilder');
+const playBotBtn = document.getElementById('playBot');
+const tutorialDeckCode = document.getElementById('tutorialDeckCode');
+const nameInput = document.getElementById('name');
+const matchStatus = document.getElementById('matchStatus');
+const playersDiv = document.getElementById('players');
+const deckCounts = document.getElementById('deckCounts');
+const tableDiv = document.getElementById('table');
+const handDiv = document.getElementById('hand');
+const drawBtn = document.getElementById('draw');
+const mulliganBtn = document.getElementById('mulligan');
 
-createBtn.onclick = () => {
-  const roomId = roomInput.value.trim();
-  const name = nameInput.value || "Player";
-  if (!roomId) return alert("Enter room ID");
-  socket.emit("createRoom", {roomId, name}, (res)=> {
-    if (res.error) return alert(res.error);
-    onJoin(res.room);
+fetch('/cards/cards.json').then(r=>r.json()).then(j=>{ CARDS=j; renderDeckBuilder(); }).catch(()=>alert('Missing cards.json'));
+
+function renderDeckBuilder(){
+  if(!CARDS) return;
+  const div = document.createElement('div');
+  const selD = document.createElement('select'); selD.id='divineSelect';
+  CARDS.divines.forEach(d=>{ const o=document.createElement('option'); o.value=d.id; o.textContent=d.name+' ('+d.element+')'; selD.appendChild(o); });
+  div.appendChild(document.createTextNode('Divine: ')); div.appendChild(selD); div.appendChild(document.createElement('br'));
+  const followerContainer = document.createElement('div'); followerContainer.id='followers';
+  CARDS.followers.forEach(f=>{
+    const cb = document.createElement('input'); cb.type='checkbox'; cb.value=f.id; cb.id='cb_'+f.id;
+    const lbl = document.createElement('label'); lbl.htmlFor='cb_'+f.id; lbl.textContent = f.name + ' ('+f.element+' atk:'+ (f.attack||'') +')';
+    followerContainer.appendChild(cb); followerContainer.appendChild(lbl); followerContainer.appendChild(document.createElement('br'));
+  });
+  div.appendChild(document.createTextNode('Followers (select 15):')); div.appendChild(followerContainer);
+  const genBtn = document.createElement('button'); genBtn.textContent='Generate Deck Code';
+  genBtn.onclick = ()=>{
+    const divine = selD.value;
+    const followers = Array.from(followerContainer.querySelectorAll('input[type=checkbox]:checked')).map(i=>i.value);
+    if(followers.length!==15){ alert('Select exactly 15 followers (currently '+followers.length+')'); return; }
+    socket.emit('generateDeckCode', {divineId:divine, followers}, (res)=>{
+      if(res.error) return alert(res.error);
+      myDeckCode = res.code; prompt('Deck Code (copy to reuse):', res.code);
+    });
+  };
+  div.appendChild(genBtn); deckbuilder.appendChild(div);
+}
+
+playBotBtn.onclick = ()=>{
+  const code = tutorialDeckCode.value.trim() || myDeckCode;
+  if(!code) return alert('Provide a deck code or generate one in the deck builder');
+  const roomId = 'room_'+Math.random().toString(36).slice(2,8);
+  const name = nameInput.value || 'Player';
+  socket.emit('createRoomWithDeck', {roomId, name, deckCode: code, mode:'ai'}, (res)=>{
+    if(res.error) return alert(res.error);
+    currentRoom = roomId; matchStatus.textContent = 'Created room '+roomId+' (vs Bot)';
   });
 };
 
-joinBtn.onclick = () => {
-  const roomId = roomInput.value.trim();
-  const name = nameInput.value || "Player";
-  if (!roomId) return alert("Enter room ID");
-  socket.emit("joinRoom", {roomId, name}, (res)=> {
-    if (res.error) return alert(res.error);
-    onJoin(res.room);
-  });
-};
+socket.on('connect', ()=>{ myId = socket.id; });
 
-readyBtn.onclick = () => {
-  if (!currentRoom) return;
-  socket.emit("toggleReady", {roomId: currentRoom.id});
-};
-
-drawBtn.onclick = () => {
-  if (!currentRoom) return;
-  socket.emit("drawCard", {roomId: currentRoom.id}, (res)=> {
-    if (res && res.error) alert(res.error);
-  });
-};
-
-leaveBtn.onclick = () => {
-  if (!currentRoom) return;
-  socket.emit("leaveRoom", {roomId: currentRoom.id}, ()=> {
-    location.reload();
-  });
-};
-
-socket.on("connect", () => { myId = socket.id; });
-
-socket.on("roomUpdate", (room) => {
-  currentRoom = room;
+socket.on('roomUpdate', (room)=>{
+  if(!room) return;
+  currentRoom = room.id;
   renderRoom(room);
 });
 
-function onJoin(room) {
-  currentRoom = room;
-  lobbyBox.style.display = "block";
-  renderRoom(room);
+function renderRoom(room){
+  matchStatus.textContent = 'Room '+room.id + ' mode: '+room.mode + (room.started? ' (started)':' (waiting)');
+  playersDiv.innerHTML = '';
+  room.players.forEach(p=>{
+    const div = document.createElement('div'); div.className='player-box';
+    const img = document.createElement('img'); const cardMeta = findCardMeta(p.divine); img.src = cardMeta? cardMeta.image : ''; img.className='divine-img';
+    div.appendChild(img);
+    const info = document.createElement('div');
+    info.innerHTML = `<strong>${p.name}${p.id===myId? ' (You)':''}</strong><br>HP: ${p.divineHP || '?'}<br>Hand: ${p.handSize}`;
+    const runesDiv = document.createElement('div'); runesDiv.className='runes';
+    const rs = p.runes || {fire:0,water:0,grass:0};
+    ['fire','water','grass'].forEach(rn=>{ const el = document.createElement('div'); el.className='rune'; el.textContent = rn+':'+(rs[rn]||0); runesDiv.appendChild(el); });
+    info.appendChild(runesDiv);
+    div.appendChild(info);
+    playersDiv.appendChild(div);
+  });
+  deckCounts.textContent = 'Decks: A='+(room.deckCounts?room.deckCounts.A:0)+' B='+(room.deckCounts?room.deckCounts.B:0);
+
+  // table show images of cards on table
+  tableDiv.innerHTML = '';
+  room.table.forEach(t=>{
+    const d = document.createElement('div');
+    if(t.system){ d.textContent = t.system; tableDiv.appendChild(d); return; }
+    const meta = findCardMeta(t.card);
+    const img = document.createElement('img'); img.src = meta? meta.image : ''; img.title = (meta?meta.name:'') + ' — ' + t.playerId;
+    tableDiv.appendChild(img);
+  });
+
+  // show hand images for me
+  handDiv.innerHTML = '';
+  const me = room.players.find(p=>p.id===myId);
+  if(me){
+    me.hand.forEach(cid=>{
+      const meta = findCardMeta(cid);
+      const img = document.createElement('img'); img.src = meta? meta.image : ''; img.title = meta? meta.name:cid;
+      img.onclick = ()=>{ if(!confirm('Play '+(meta?meta.name:cid)+'?')) return; socket.emit('playCard', {roomId: room.id, cardId: cid}, (res)=>{ if(res && res.error) alert(res.error); }); };
+      handDiv.appendChild(img);
+    });
+  } else {
+    handDiv.textContent = 'Not in this room';
+  }
 }
 
-function renderRoom(room) {
-  // show lobby info
-  playersEl.innerHTML = "";
-  room.players.forEach(p => {
-    const d = document.createElement("div");
-    d.className = "player";
-    d.innerHTML = `<div>${p.name}${p.id===myId? " (You)":""}</div><div>${p.handSize} cards ${p.ready? "✅": ""}</div>`;
-    playersEl.appendChild(d);
-  });
-  deckCountEl.textContent = room.deckCount;
-  stateEl.textContent = room.state;
-  turnEl.textContent = room.order && room.order.length ? room.order[room.turnIndex] : "-";
+function findCardMeta(id){ if(!CARDS) return null; return CARDS.divines.find(d=>d.id===id) || CARDS.followers.find(f=>f.id===id) || null; }
 
-  // show game section if playing or there are cards
-  if (room.state === "playing" || room.table.length > 0) {
-    gameBox.style.display = "block";
-    lobbyBox.style.display = "none";
-  } else {
-    gameBox.style.display = "none";
-    lobbyBox.style.display = "block";
-  }
-
-  // request to update our visible hand from server snapshot: server doesn't send full hands for privacy in summary;
-  // But our server currently doesn't hide hands — so we rely on the room object. Find our player entry.
-  const me = room.players.find(p => p.id === myId);
-  const hand = [];
-  // the server sends hand sizes in summary. To keep it simple, this client listens for direct hand updates
-  // but to avoid extra endpoints, we'll show placeholder hand size and let draw/play reflect via click events.
-  // If actual card data is present in players, show those.
-  const fullPlayer = room.players.find(p => p.id === myId && p.cards);
-  // Try to display cards if server provided them (in this starter it does not include card arrays in the summary)
-  handEl.innerHTML = "";
-  if (room.playersFull) {
-    // not used
-  } else {
-    // show placeholders with count
-    const meFull = room.players.find(p => p.id===myId);
-    const count = meFull ? meFull.handSize : 0;
-    handEl.innerHTML = `<div>${count} cards in hand (use Draw to get cards). Click a card to play once visible.</div>`;
-  }
-
-  // table
-  tableEl.innerHTML = "";
-  room.table.forEach(t => {
-    const div = document.createElement("div");
-    div.textContent = `${t.card} — ${t.playerId===myId? "You": t.playerId}`;
-    tableEl.appendChild(div);
-  });
-
-}
-
-// play card when clicking a card in hand (future: when cards are visible)
-handEl.addEventListener("click", (ev) => {
-  const txt = ev.target.textContent;
-  if (!txt) return;
-  const card = txt.trim();
-  if (!confirm("Play " + card + "?")) return;
-  socket.emit("playCard", {roomId: currentRoom.id, card}, (res)=> {
-    if (res && res.error) alert(res.error);
-  });
-});
+drawBtn.onclick = ()=>{ if(!currentRoom) return alert('Not in match'); socket.emit('drawFromDeck', {roomId: currentRoom}, (res)=>{ if(res && res.error) alert(res.error); }); };
+mulliganBtn.onclick = ()=>{ if(!currentRoom) return alert('Not in match'); socket.emit('mulligan', {roomId: currentRoom}, (res)=>{ if(res && res.error) alert(res.error); }); };
