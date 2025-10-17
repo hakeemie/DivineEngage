@@ -1,123 +1,149 @@
-import React, {useState} from 'react'
-import cardsData from '../data/cards.js'
-import { encodeDeck } from '../utils/base64.js'
+// src/pages/DeckBuilder.jsx
+import React, { useState, useEffect } from "react";
+import cardsData from "../data/cards.js";
+import { encodeDeck } from "../utils/base64.js";
 
-export default function DeckBuilder(){
-  const cards = cardsData
-  const [divine, setDivine] = useState(cards.divines[0].id)
-  const [selected, setSelected] = useState({})
-
- function getElementFromImage(imgPath){
-    if(!imgPath) return 'fire'
-    const name = imgPath.split('/').pop().toLowerCase()
-    if(name.startsWith('f')) return 'fire'
-    if(name.startsWith('g')) return 'grass'
-    if(name.startsWith('w')) return 'water'
-    // fallback to provided element metadata
-    return null
-  }
-
-const DeckBuilder = () => {
-  const [cards, setCards] = useState([]);
-  const [categorizedCards, setCategorizedCards] = useState({
-    Fire: [],
-    Water: [],
-    Grass: [],
-  });
+export default function DeckBuilder() {
+  const [selectedDivine, setSelectedDivine] = useState(null);
   const [selectedCards, setSelectedCards] = useState([]);
+  const [deckCode, setDeckCode] = useState("");
+
+  // Filter cards into elements
+  const fireCards = cardsData.followers.filter((c) => c.id.toLowerCase().startsWith("f"));
+  const waterCards = cardsData.followers.filter((c) => c.id.toLowerCase().startsWith("w"));
+  const grassCards = cardsData.followers.filter((c) => c.id.toLowerCase().startsWith("g"));
+  const divines = cardsData.divines;
+
+  // Selection logic
+  const toggleCard = (cardId) => {
+    if (selectedCards.includes(cardId)) {
+      setSelectedCards(selectedCards.filter((id) => id !== cardId));
+    } else if (selectedCards.length < 15) {
+      setSelectedCards([...selectedCards, cardId]);
+    } else {
+      alert("You can only select 15 follower cards!");
+    }
+  };
+
+  const selectDivine = (id) => {
+    setSelectedDivine(id);
+  };
+
+  const generateDeckCode = () => {
+    if (!selectedDivine) return alert("Select a Divine first!");
+    if (selectedCards.length !== 15)
+      return alert(`You must select exactly 15 followers. You currently have ${selectedCards.length}.`);
+    const combined = [selectedDivine, ...selectedCards];
+    const encoded = encodeDeck(combined);
+    setDeckCode(encoded);
+  };
 
   useEffect(() => {
-    const fetchCards = async () => {
-      try {
-        const response = await fetch("/cards/cards.json");
-        const data = await response.json();
+    if (deckCode) {
+      navigator.clipboard.writeText(deckCode);
+    }
+  }, [deckCode]);
 
-        // Categorize cards by ID prefix
-        const categories = {
-          Fire: [],
-          Water: [],
-          Grass: [],
-        };
-
-        data.forEach((card) => {
-          const id = card.id?.toLowerCase() || "";
-
-          if (id.startsWith("f")) {
-            categories.Fire.push(card);
-          } else if (id.startsWith("g")) {
-            categories.Grass.push(card);
-          } else if (id.startsWith("w")) {
-            categories.Water.push(card);
-          }
-        });
-
-        setCards(data);
-        setCategorizedCards(categories);
-      } catch (err) {
-        console.error("Error loading cards:", err);
-      }
-    };
-
-    fetchCards();
-  }, []);
-
-  const toggleSelect = (cardId) => {
-    setSelectedCards((prevSelected) =>
-      prevSelected.includes(cardId)
-        ? prevSelected.filter((id) => id !== cardId)
-        : [...prevSelected, cardId]
-    );
-  };
-
-  const saveDeck = () => {
-    const deck = cards.filter((card) => selectedCards.includes(card.id));
-    localStorage.setItem("playerDeck", JSON.stringify(deck));
-    alert("Deck saved!");
-  };
-
-  return (
-    <div className="flex gap-4 p-4">
-      {Object.entries(categorizedCards).map(([type, typeCards]) => (
-        <div key={type} className="w-1/3 bg-gray-900 rounded-lg p-4">
-          <h2 className="text-white font-bold mb-2">{type}</h2>
-          <div className="grid grid-cols-2 gap-4">
-            {typeCards.map((card) => (
-              <div
-                key={card.id}
-                onClick={() => toggleSelect(card.id)}
-                className={`cursor-pointer p-1 rounded-lg border ${
-                  selectedCards.includes(card.id)
-                    ? "border-yellow-400"
-                    : "border-transparent"
-                }`}
-              >
-                <img
-                  src={`/cards/${card.image}`}
-                  alt={card.name}
-                  className="rounded-md"
-                />
-                <div className="text-white text-sm mt-1">
-                  <strong>{card.name}</strong>
-                  <br />
-                  ATK {card.atk}
-                  {card.effect && <>, {card.effect}</>}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-
-      <div className="flex flex-col justify-center">
-        <button
-          onClick={saveDeck}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-        >
-          Save Deck
-        </button>
+  const renderCard = (card, isSelected, onClick) => (
+    <div
+      key={card.id}
+      onClick={onClick}
+      style={{
+        width: 100,
+        margin: "4px auto",
+        cursor: "pointer",
+        border: isSelected ? "3px solid white" : "2px solid transparent",
+        borderRadius: 8,
+      }}
+    >
+      <img
+        src={card.image}
+        alt={card.name}
+        style={{
+          width: "100%",
+          borderRadius: 6,
+          height: 140,
+          objectFit: "cover",
+        }}
+      />
+      <div style={{ textAlign: "center", marginTop: 4 }}>
+        <strong>{card.name}</strong>
+        <div style={{ fontSize: 12 }}>{card.stats}</div>
       </div>
     </div>
   );
-};
 
-export default DeckBuilder;
+  return (
+    <div className="p-6 text-white">
+      <h1 className="text-3xl font-bold mb-4">Deck Builder</h1>
+
+      {/* DIVINES */}
+      <h2 className="text-xl font-semibold mb-2">Select Your Divine (1)</h2>
+      <div className="flex flex-wrap gap-4 mb-8">
+        {divines.map((divine) => (
+          <div key={divine.id}>
+            {renderCard(divine, selectedDivine === divine.id, () => selectDivine(divine.id))}
+          </div>
+        ))}
+      </div>
+
+      {/* FOLLOWERS */}
+      <h2 className="text-xl font-semibold mb-2">Select Your Followers (15)</h2>
+      <div className="grid grid-cols-3 gap-6">
+        {/* FIRE */}
+        <div className="card p-2 rounded-lg bg-slate-900">
+          <h3 className="text-lg font-bold text-center mb-2">FIRE</h3>
+          <div className="grid grid-cols-2 gap-2">
+            {fireCards.slice(0, 18).map((card) =>
+              renderCard(card, selectedCards.includes(card.id), () => toggleCard(card.id))
+            )}
+          </div>
+        </div>
+
+        {/* WATER */}
+        <div className="card p-2 rounded-lg bg-slate-900">
+          <h3 className="text-lg font-bold text-center mb-2">WATER</h3>
+          <div className="grid grid-cols-2 gap-2">
+            {waterCards.slice(0, 18).map((card) =>
+              renderCard(card, selectedCards.includes(card.id), () => toggleCard(card.id))
+            )}
+          </div>
+        </div>
+
+        {/* GRASS */}
+        <div className="card p-2 rounded-lg bg-slate-900">
+          <h3 className="text-lg font-bold text-center mb-2">GRASS</h3>
+          <div className="grid grid-cols-2 gap-2">
+            {grassCards.slice(0, 18).map((card) =>
+              renderCard(card, selectedCards.includes(card.id), () => toggleCard(card.id))
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* DECK SUMMARY */}
+      <div className="mt-8 card p-4 bg-slate-900 rounded-lg">
+        <h3 className="text-xl font-semibold mb-2">Your Deck</h3>
+        <p>
+          <strong>Divine:</strong>{" "}
+          {selectedDivine ? selectedDivine : <span className="text-gray-400">None</span>}
+        </p>
+        <p>
+          <strong>Followers:</strong> {selectedCards.length} / 15
+        </p>
+        <button
+          onClick={generateDeckCode}
+          className="mt-4 px-6 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold"
+        >
+          Generate Deck Code
+        </button>
+        {deckCode && (
+          <div className="mt-4">
+            <p className="font-mono break-all bg-black/30 p-2 rounded-lg">{deckCode}</p>
+            <p className="text-sm text-gray-400">(Copied to clipboard automatically)</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
