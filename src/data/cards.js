@@ -325,7 +325,7 @@ export default {
       "name": "Mage Knight",
       "element": "grass",
       "attack": 1,
-      "image": "/cards/G12.png",
+      "image": "/cards/g12.png",
       "abilities": []
     },
     {
@@ -349,7 +349,7 @@ export default {
       "name": "Wizcrow",
       "element": "grass",
       "attack": 2,
-      "image": "/cards/G15.png",
+      "image": "/cards/g15.png",
       "abilities": []
     },
     {

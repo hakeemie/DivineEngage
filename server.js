@@ -21,7 +21,17 @@ let CARDS = { divines: [], followers: [] };
 try{ const txt = fs.readFileSync(path.join(__dirname,'src','data','cards.js'),'utf8'); CARDS = JSON.parse(txt.replace(/^\s*export default\s*/,'')); }catch(e){ console.warn('cards load failed', e.message); }
 
 function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]] } return arr; }
-function findCard(id){ return CARDS.divines.find(d=>d.id===id) || CARDS.followers.find(f=>f.id===id) || null; }
+function findCard(id) {
+  if (!id) return null;
+  const lowerId = id.toString().toLowerCase();
+  const match = (
+    CARDS.divines.find(d => d.id.toLowerCase() === lowerId) ||
+    CARDS.fire.find(f => f.id.toLowerCase() === lowerId) ||
+    CARDS.grass.find(g => g.id.toLowerCase() === lowerId) ||
+    CARDS.water.find(w => w.id.toLowerCase() === lowerId)
+  );
+  return match || null;
+}
 function decodeDeck(code){ try{ let pad = code.length % 4; if(pad) code += '='.repeat(4-pad); return JSON.parse(Buffer.from(code,'base64').toString('utf8')); }catch(e){ return null; } }
 
 const rooms = {};
