@@ -2,7 +2,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import { decodeDeck } from "../utils/base64.js";
-import cardsData from "../data/cards.js";
+import { CARDS as cardsData } from "../data/cards.js";
+
 
 let socket = null;
 
