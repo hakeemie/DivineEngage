@@ -1,4 +1,4 @@
-export default {
+export const CARDS = {
   "divines": [
     {
       "id": "D1",
