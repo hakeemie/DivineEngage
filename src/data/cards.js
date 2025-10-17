@@ -224,7 +224,7 @@ export default {
       "name": "Rayla Twins",
       "element": "grass",
       "attack": 2,
-      "image": "/cards/G1.png",
+      "image": "/cards/g1.png",
       "abilities": []
     },
     {
@@ -232,7 +232,7 @@ export default {
       "name": "fernram",
       "element": "grass",
       "attack": 2,
-      "image": "/cards/G2.png",
+      "image": "/cards/g2.png",
       "abilities": [  {
           "type": "draw",
           "value": 2
@@ -243,7 +243,7 @@ export default {
       "name": "Voidstring",
       "element": "grass",
       "attack": 1,
-      "image": "/cards/G3.png",
+      "image": "/cards/g3.png",
       "abilities": []
     },
     {
