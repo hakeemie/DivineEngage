@@ -8,11 +8,17 @@ export default function DeckBuilder() {
   const [selectedCards, setSelectedCards] = useState([]);
   const [deckCode, setDeckCode] = useState("");
 
-  // Filter cards into elements
-  const fireCards = cardsData.followers.filter((c) => c.id.toLowerCase().startsWith("f"));
-  const waterCards = cardsData.followers.filter((c) => c.id.toLowerCase().startsWith("w"));
-  const grassCards = cardsData.followers.filter((c) => c.id.toLowerCase().startsWith("g"));
-  const divines = cardsData.divines;
+ const allFollowers = [
+  ...(cardsData.fire || []),
+  ...(cardsData.water || []),
+  ...(cardsData.grass || []),
+];
+
+// Filter cards into elements
+const fireCards = (cardsData.fire || []).filter((c) => c.id.toLowerCase().startsWith("f"));
+const waterCards = (cardsData.water || []).filter((c) => c.id.toLowerCase().startsWith("w"));
+const grassCards = (cardsData.grass || []).filter((c) => c.id.toLowerCase().startsWith("g"));
+const divines = cardsData.divines || [];
 
   // Selection logic
   const toggleCard = (cardId) => {
