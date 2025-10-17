@@ -7,8 +7,7 @@ export default function DeckBuilder(){
   const [divine, setDivine] = useState(cards.divines[0].id)
   const [selected, setSelected] = useState({})
 
-  // derive element from image filename if needed (support f#/g#/w#)
-  function getElementFromImage(imgPath){
+ function getElementFromImage(imgPath){
     if(!imgPath) return 'fire'
     const name = imgPath.split('/').pop().toLowerCase()
     if(name.startsWith('f')) return 'fire'
@@ -18,61 +17,107 @@ export default function DeckBuilder(){
     return null
   }
 
-  const byElement = { fire:[], water:[], grass:[] }
-  cards.followers.forEach(f=> {
-    const elFromImg = getElementFromImage(f.image)
-    const el = elFromImg || f.element || 'fire'
-    byElement[el].push(f)
-  })
+const DeckBuilder = () => {
+  const [cards, setCards] = useState([]);
+  const [categorizedCards, setCategorizedCards] = useState({
+    Fire: [],
+    Water: [],
+    Grass: [],
+  });
+  const [selectedCards, setSelectedCards] = useState([]);
 
-  function toggle(id){
-    setSelected(s=>{ const ns={...s}; if(ns[id]) delete ns[id]; else ns[id]=true; return ns })
-  }
-  function generate(){
-    const sel = Object.keys(selected)
-    if(sel.length !== 15){ alert('Select exactly 15 followers (currently '+sel.length+')'); return }
-    const arr = [divine].concat(sel)
-    const code = encodeDeck(arr)
-    prompt('Deck code (copy to reuse):', code)
-  }
+  useEffect(() => {
+    const fetchCards = async () => {
+      try {
+        const response = await fetch("/cards/cards.json");
+        const data = await response.json();
+
+        // Categorize cards by ID prefix
+        const categories = {
+          Fire: [],
+          Water: [],
+          Grass: [],
+        };
+
+        data.forEach((card) => {
+          const id = card.id?.toLowerCase() || "";
+
+          if (id.startsWith("f")) {
+            categories.Fire.push(card);
+          } else if (id.startsWith("g")) {
+            categories.Grass.push(card);
+          } else if (id.startsWith("w")) {
+            categories.Water.push(card);
+          }
+        });
+
+        setCards(data);
+        setCategorizedCards(categories);
+      } catch (err) {
+        console.error("Error loading cards:", err);
+      }
+    };
+
+    fetchCards();
+  }, []);
+
+  const toggleSelect = (cardId) => {
+    setSelectedCards((prevSelected) =>
+      prevSelected.includes(cardId)
+        ? prevSelected.filter((id) => id !== cardId)
+        : [...prevSelected, cardId]
+    );
+  };
+
+  const saveDeck = () => {
+    const deck = cards.filter((card) => selectedCards.includes(card.id));
+    localStorage.setItem("playerDeck", JSON.stringify(deck));
+    alert("Deck saved!");
+  };
 
   return (
-    <div>
-      <div className="card" style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-        <div>
-          <h2>Deck Builder</h2>
-          <div className="small">Select Divine:
-            <select className="ml-2" value={divine} onChange={e=>setDivine(e.target.value)}>
-              {cards.divines.map(d=> <option key={d.id} value={d.id}>{d.name} ({d.element})</option>)}
-            </select>
-          </div>
-        </div>
-        <div>
-          <button className="button" onClick={generate}>Generate Deck Code</button>
-        </div>
-      </div>
-
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:12,marginTop:12}}>
-        {['fire','water','grass'].map(el=> (
-          <div key={el} className="card">
-            <h3>{el.toUpperCase()}</h3>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginTop:8}}>
-              {byElement[el].map(c=> (
-                <div key={c.id} style={{display:'flex',alignItems:'center',gap:8,justifyContent:'space-between',padding:6}}>
-                  <div style={{display:'flex',gap:8,alignItems:'center'}}>
-                    <img src={c.image} alt="" style={{width:56,height:80,objectFit:'cover',borderRadius:6}} />
-                    <div>
-                      <div style={{fontWeight:700}}>{c.name}</div>
-                      <div className="small">ATK {c.attack} {c.abilities && c.abilities.length>0 ? '| ' + c.abilities.map(a=>a.type).join(', ') : ''}</div>
-                    </div>
-                  </div>
-                  <div><input type="checkbox" checked={!!selected[c.id]} onChange={()=>toggle(c.id)} /></div>
+    <div className="flex gap-4 p-4">
+      {Object.entries(categorizedCards).map(([type, typeCards]) => (
+        <div key={type} className="w-1/3 bg-gray-900 rounded-lg p-4">
+          <h2 className="text-white font-bold mb-2">{type}</h2>
+          <div className="grid grid-cols-2 gap-4">
+            {typeCards.map((card) => (
+              <div
+                key={card.id}
+                onClick={() => toggleSelect(card.id)}
+                className={`cursor-pointer p-1 rounded-lg border ${
+                  selectedCards.includes(card.id)
+                    ? "border-yellow-400"
+                    : "border-transparent"
+                }`}
+              >
+                <img
+                  src={`/cards/${card.image}`}
+                  alt={card.name}
+                  className="rounded-md"
+                />
+                <div className="text-white text-sm mt-1">
+                  <strong>{card.name}</strong>
+                  <br />
+                  ATK {card.atk}
+                  {card.effect && <>, {card.effect}</>}
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
+      ))}
+
+      <div className="flex flex-col justify-center">
+        <button
+          onClick={saveDeck}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+        >
+          Save Deck
+        </button>
       </div>
     </div>
-  )
-}
+  );
+};
+
+export default DeckBuilder;
