@@ -18,10 +18,7 @@ app.use('/assets', express.static(path.join(__dirname, 'public', 'assets')));
 app.use(express.static(path.join(__dirname, 'dist')));
 
 let CARDS = { divines: [], followers: [] };
-try{
-  const txt = fs.readFileSync(path.join(__dirname,'src','data','cards.js'),'utf8');
-  CARDS = JSON.parse(txt.replace(/^\s*export default\s*/,''));
-}catch(e){ console.warn('cards load failed', e.message); }
+try{ const txt = fs.readFileSync(path.join(__dirname,'src','data','cards.js'),'utf8'); CARDS = JSON.parse(txt.replace(/^\s*export default\s*/,'')); }catch(e){ console.warn('cards load failed', e.message); }
 
 function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]] } return arr; }
 function findCard(id){ return CARDS.divines.find(d=>d.id===id) || CARDS.followers.find(f=>f.id===id) || null; }
@@ -29,7 +26,7 @@ function decodeDeck(code){ try{ let pad = code.length % 4; if(pad) code += '='.r
 
 const rooms = {};
 
-function newRoom(){ return { players:{}, order:[], decks:{}, discards:{}, started:false, table:[], confirms:{}, engage:{}, damageThisTurn:{} }; }
+function newRoom(){ return { players:{}, order:[], decks:{}, discards:{}, started:false, table:[], confirms:{}, engage:{}, pending:{}, damageThisTurn:{}, matchOutcome:null }; }
 
 io.on('connection', socket=>{
   console.log('conn', socket.id);
@@ -65,14 +62,13 @@ io.on('connection', socket=>{
     const divine = arr[0]; const followers = arr.slice(1);
     const r = newRoom();
     r.decks[socket.id] = shuffle(followers.slice());
-    // bot
     const pool = CARDS.followers.map(f=>f.id).filter(x=> !r.decks[socket.id].includes(x));
     shuffle(pool);
     const botId = 'BOT_'+Math.random().toString(36).slice(2,8);
     r.decks[botId] = pool.slice(0,15);
     r.discards[socket.id] = []; r.discards[botId] = [];
     r.players[socket.id] = { id: socket.id, name:name||'Player', hand:[], engage:null, divine, divineHP:(findCard(divine)||{}).hp||30, runes:{fire:0,water:0,grass:0}, transcended:false, drawn:0, isBot:false };
-    r.players[botId] = { id: botId, name:'Bot', hand:[], engage:null, divine: (findCard(r.decks[botId][0])||{}).id || CARDS.divines[0].id, divineHP:(findCard(r.decks[botId][0])||{}).hp||30, runes:{fire:0,water:0,grass:0}, transcended:false, drawn:0, isBot:true };
+    r.players[botId] = { id: botId, name:'Bot', hand:[], engage:null, divine: CARDS.divines[1].id, divineHP:(findCard(CARDS.divines[1].id)||{}).hp||30, runes:{fire:0,water:0,grass:0}, transcended:false, drawn:0, isBot:true };
     r.order.push(socket.id); r.order.push(botId);
     rooms[roomId] = r;
     socket.join(roomId);
@@ -80,20 +76,27 @@ io.on('connection', socket=>{
     io.to(roomId).emit('roomUpdate', summarize(roomId));
   });
 
+  // NEW: pending confirm handling
   socket.on('playerConfirm', ({roomId, card}, cb)=>{
     const r = rooms[roomId]; if(!r) return cb && cb({error:'room not found'});
     if(!r.players[socket.id]) return cb && cb({error:'not in room'});
     const p = r.players[socket.id];
     if(!p.hand.includes(card)) return cb && cb({error:'card not in hand'});
-    // move to engage immediately
+    // remove from hand and set pending
     p.hand = p.hand.filter(c=> c !== card);
-    r.engage[socket.id] = card;
-    r.confirms[socket.id] = card;
+    r.pending[socket.id] = card;
     io.to(roomId).emit('roomUpdate', summarize(roomId));
-    const humanIds = Object.keys(r.players).filter(id=> !r.players[id].isBot);
-    if(humanIds.length === 2 && humanIds.every(id=> r.confirms[id])){ resolveEngage(roomId); r.confirms = {}; }
-    const allEngaged = Object.keys(r.engage).length === Object.keys(r.players).length;
-    if(allEngaged){ resolveEngage(roomId); r.confirms = {}; }
+    // if both players pending, reveal and resolve after 5s
+    const playerIds = Object.keys(r.players).filter(id=> !r.players[id].isBot);
+    const allPending = playerIds.length === Object.keys(r.pending).length && playerIds.every(id=> r.pending[id]);
+    if(allPending){
+      // reveal
+      r.engage = {...r.pending};
+      r.pending = {};
+      io.to(roomId).emit('roomUpdate', summarize(roomId));
+      // wait 5 seconds, then resolve
+      setTimeout(()=>{ resolveEngage(roomId); }, 5000);
+    }
     cb && cb({ok:true});
   });
 
@@ -105,14 +108,14 @@ io.on('connection', socket=>{
     }
   });
 
-  function summarize(roomId){ const r = rooms[roomId]; if(!r) return null; const players = Object.entries(r.players).map(([id,p])=>({ id, name:p.name, hand:p.hand, engage: r.engage[id]||null, divine: p.divine, divineHP: p.divineHP, runes: p.runes, transcended: p.transcended })); return { id: roomId, players, deckCounts: Object.fromEntries(Object.keys(r.decks).map(k=>[k, r.decks[k].length])), discardCounts: Object.fromEntries(Object.keys(r.discards).map(k=>[k, r.discards[k].length])), table: r.table }; }
+  function summarize(roomId){ const r = rooms[roomId]; if(!r) return null; const players = Object.entries(r.players).map(([id,p])=>({ id, name:p.name, hand:p.hand, engage: r.engage[id]||null, pending: r.pending[id]||null, divine: p.divine, divineHP: p.divineHP, runes: p.runes, transcended: p.transcended })); return { id: roomId, players, deckCounts: Object.fromEntries(Object.keys(r.decks).map(k=>[k, r.decks[k].length])), discardCounts: Object.fromEntries(Object.keys(r.discards).map(k=>[k, r.discards[k].length])), table: r.table, matchOutcome: r.matchOutcome }; }
 
   function startMatch(roomId){
     const r = rooms[roomId]; if(!r) return;
-    r.started = true; r.table = []; r.engage = {}; r.confirms = {}; r.damageThisTurn = {};
+    r.started = true; r.table = []; r.engage = {}; r.pending = {}; r.confirms = {}; r.damageThisTurn = {}; r.matchOutcome = null;
     for(const pid of Object.keys(r.players)){
       const p = r.players[pid]; p.hand = []; p.engage = null; p.runes = {fire:0,water:0,grass:0}; p.transcended = false; p.drawn = 0;
-      for(let i=0;i<5;i++){ const c = drawCard(r, pid); if(c){ p.hand.push(c); p.drawn++; } }
+      for(let i=0;i<4;i++){ const c = drawCard(r, pid); if(c){ p.hand.push(c); p.drawn++; } }
       const dv = findCard(p.divine); if(dv && dv.element) p.runes[dv.element] = (p.runes[dv.element]||0)+1; p.divineHP = (dv && dv.hp) ? dv.hp : 30;
     }
     io.to(roomId).emit('roomUpdate', summarize(roomId));
@@ -139,13 +142,27 @@ io.on('connection', socket=>{
     const opponent = Object.keys(r.players).find(id=> id !== winner);
     let attackValue = totals[winner]||0; let runeBonus=0; for(const el of elements[winner]||[]) runeBonus += (r.players[winner].runes[el]||0);
     let damage = attackValue + runeBonus;
-    const winnerDiv = findCard(r.players[winner].divine); if(winnerDiv && winnerDiv.id === 'D1' && r.players[winner].transcended && r.players[winner].transcended_effect && r.players[winner].transcended_effect.type === 'double_damage'){ damage = damage * 2; }
+    const winnerDiv = findCard(r.players[winner].divine); if(winnerDiv && winnerDiv.id === 'D_FIRE' && r.players[winner].transcended && r.players[winner].transcended_effect && r.players[winner].transcended_effect.type === 'double_damage'){ damage = damage * 2; }
     r.players[opponent].divineHP -= damage;
     r.table.push({system:`${r.players[winner].name} won the clash and dealt ${damage} damage to ${r.players[opponent].name}`});
+    // abilities
     for(const e of engages.filter(x=>x.id===winner)){ const info=findCard(e.card); if(info.abilities) for(const ab of info.abilities){ applyAbility(r,winner,opponent,ab); } }
     for(const e of engages.filter(x=>x.id===opponent)){ const info=findCard(e.card); if(info.abilities) for(const ab of info.abilities){ applyAbility(r,opponent,winner,ab); } }
-    checkTranscend(r,winner); checkTranscend(r,opponent); finalizeEngageAndDraw(r);
-    if(r.players[opponent].divineHP <= 0){ r.table.push({system:`${r.players[winner].name} wins the match!`}); io.to(roomId).emit('roomUpdate', summarize(roomId)); setTimeout(()=>{ delete rooms[roomId]; }, 3000); return; }
+    // check transcendence
+    checkTranscend(r,winner); checkTranscend(r,opponent);
+    // finalize & draw
+    finalizeEngageAndDraw(r);
+    // check victory and set matchOutcome
+    if(r.players[opponent].divineHP <= 0 || r.players[winner].divineHP <= 0){
+      const winId = r.players[opponent].divineHP <= 0 ? winner : (r.players[winner].divineHP <= 0 ? opponent : winner);
+      const loseId = winId === winner ? opponent : winner;
+      r.matchOutcome = { winner: winId, loser: loseId };
+      r.table.push({system:`Match ended. Winner: ${r.players[winId].name}`});
+      io.to(roomId).emit('roomUpdate', summarize(roomId));
+      // expire room after short delay
+      setTimeout(()=>{ delete rooms[roomId]; }, 5000);
+      return;
+    }
     io.to(roomId).emit('roomUpdate', summarize(roomId));
   }
 
@@ -168,10 +185,11 @@ io.on('connection', socket=>{
     const p = r.players[playerId]; if(!p) return; if(p.transcended) return; const dv = findCard(p.divine); if(!dv) return; const cond = dv.transcend || '';
     if(cond.startsWith('runes>=')){ const num=parseInt(cond.split('>=')[1],10); const total=(p.runes.fire||0)+(p.runes.water||0)+(p.runes.grass||0); if(total>=num){ p.transcended=true; p.transcended_effect=dv.transcendEffect; r.table.push({system:`${p.name}'s Divine ${dv.name} has transcended!`}); } }
     else if(cond.startsWith('damageInTurn>=')){ const num=parseInt(cond.split('>=')[1],10); const dmg = r.damageThisTurn && r.damageThisTurn[playerId] || 0; if(dmg>=num){ p.transcended=true; p.transcended_effect=dv.transcendEffect; r.table.push({system:`${p.name}'s Divine ${dv.name} has transcended!`}); } }
-    else if(cond.startsWith('drawn>=')){ const num=parseInt(cond.split('>=')[1],10); if((p.drawn||0) >= num){ p.transcended=true; p.transcended_effect=dv.transcendEffect; r.table.push({system:`${p.name}'s Divine ${dv.name} has transcended!`}); if(dv.transcendEffect && dv.transcendEffect.type==='set_rune_to_6'){ const keys=['fire','water','grass']; let best='fire'; let bestv=p.runes.fire||0; for(const k of keys){ if((p.runes[k]||0)>bestv){ best=k; bestv=p.runes[k]||0 } } p.runes[best]=6; r.table.push({system:`${p.name}'s Divine sets ${best} rune to 6 permanently.`}); } } }
+    else if(cond.startsWith('drawn>=')){ const num=parseInt(cond.split('>=')[1],10); if((p.drawn||0) >= num){ p.transcended=true; p.transcended_effect=dv.transcendEffect; r.table.push({system:`${p.name}'s Divine ${dv.name} has transcended!`}); if(dv.transcendEffect && dv.transcendEffect.type==='set_rune_to_6'){ const keys=['fire','water','grass']; let best='fire'; let bestv=p.runes.fire||0; for(const k of keys){ if((p.runes[k]||0) > bestv){ best=k; bestv=p.runes[k]||0 } } p.runes[best]=6; r.table.push({system:`${p.name}'s Divine sets ${best} rune to 6 permanently.`}); } } }
   }
 
 }); // end io.on
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, ()=> console.log('Server listening on', PORT));
+
