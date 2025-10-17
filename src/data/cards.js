@@ -251,7 +251,7 @@ export default {
       "name": "Egg Academy",
       "element": "grass",
       "attack": 2,
-      "image": "/cards/G4.png",
+      "image": "/cards/g4.png",
       "abilities": []
     },
     {
@@ -259,7 +259,7 @@ export default {
       "name": "Spirit Doctor",
       "element": "grass",
       "attack": 2,
-      "image": "/cards/G5.png",
+      "image": "/cards/g5.png",
       "abilities": [
         {
           "type": "draw",
@@ -272,7 +272,7 @@ export default {
       "name": "Xelo",
       "element": "grass",
       "attack": 2,
-      "image": "/cards/G6.png",
+      "image": "/cards/g6.png",
       "abilities": []
     },
     {
@@ -280,7 +280,7 @@ export default {
       "name": "Shorin",
       "element": "grass",
       "attack": 3,
-      "image": "/cards/G7.png",
+      "image": "/cards/g7.png",
       "abilities": []
     },
     {
@@ -288,7 +288,7 @@ export default {
       "name": "Wild Vyne",
       "element": "grass",
       "attack": 2,
-      "image": "/cards/G8.png",
+      "image": "/cards/g8.png",
       "abilities": []
     },
     {
@@ -296,7 +296,7 @@ export default {
       "name": "Druidica",
       "element": "grass",
       "attack": 2,
-      "image": "/cards/G9.png",
+      "image": "/cards/g9.png",
       "abilities": [
         {
           "type": "damage",
@@ -309,7 +309,7 @@ export default {
       "name": "ChalaWulu",
       "element": "grass",
       "attack": 1,
-      "image": "/cards/G10.png",
+      "image": "/cards/g10.png",
       "abilities": []
     },
     {
@@ -317,7 +317,7 @@ export default {
       "name": "Solari",
       "element": "grass",
       "attack": 1,
-      "image": "/cards/G11.png",
+      "image": "/cards/g11.png",
       "abilities": []
     },
     {
@@ -333,7 +333,7 @@ export default {
       "name": "Frilla",
       "element": "grass",
       "attack": 3,
-      "image": "/cards/G13.png",
+      "image": "/cards/g13.png",
       "abilities": []
     },
     {
@@ -341,7 +341,7 @@ export default {
       "name": "Pix",
       "element": "grass",
       "attack": 2,
-      "image": "/cards/G14.png",
+      "image": "/cards/g14.png",
       "abilities": []
     },
     {
@@ -357,7 +357,7 @@ export default {
       "name": "Monolith",
       "element": "grass",
       "attack": 5,
-      "image": "/cards/G16.png",
+      "image": "/cards/g16.png",
       "abilities": [
       ]
     },
@@ -366,7 +366,7 @@ export default {
       "name": "Dr Alexi",
       "element": "grass",
       "attack": 1,
-      "image": "/cards/G17.png",
+      "image": "/cards/g17.png",
       "abilities": [
         {
           "type": "discard",
@@ -379,7 +379,7 @@ export default {
       "name": "Shible",
       "element": "grass",
       "attack": 2,
-      "image": "/cards/G18.png",
+      "image": "/cards/g18.png",
       "abilities": []
     },
     {
@@ -387,7 +387,7 @@ export default {
       "name": "Eyelock",
       "element": "water",
       "attack": 2,
-      "image": "/cards/W1.png",
+      "image": "/cards/w1.png",
       "abilities": []
     },
     {
@@ -395,7 +395,7 @@ export default {
       "name": "Shade",
       "element": "water",
       "attack": 1,
-      "image": "/cards/W2.png",
+      "image": "/cards/w2.png",
       "abilities": []
     },
     {
@@ -403,7 +403,7 @@ export default {
       "name": "Smallboss",
       "element": "water",
       "attack": 2,
-      "image": "/cards/W3.png",
+      "image": "/cards/w3.png",
       "abilities": []
     },
     {
@@ -411,7 +411,7 @@ export default {
       "name": "Praise Shroom",
       "element": "water",
       "attack": 2,
-      "image": "/cards/W4.png",
+      "image": "/cards/w4.png",
       "abilities": [
         {
           "type": "damage",
@@ -424,7 +424,7 @@ export default {
       "name": "Forager",
       "element": "water",
       "attack": 2,
-      "image": "/cards/W5.png",
+      "image": "/cards/w5.png",
       "abilities": []
     },
     {
@@ -432,7 +432,7 @@ export default {
       "name": "Spark",
       "element": "water",
       "attack": 1,
-      "image": "/cards/W6.png",
+      "image": "/cards/w6.png",
       "abilities": []
     },
     {
@@ -440,7 +440,7 @@ export default {
       "name": "Lanturn",
       "element": "water",
       "attack": 1,
-      "image": "/cards/W7.png",
+      "image": "/cards/w7.png",
       "abilities": []
     },
     {
@@ -448,7 +448,7 @@ export default {
       "name": "Birch",
       "element": "water",
       "attack": 3,
-      "image": "/cards/W8.png",
+      "image": "/cards/w8.png",
       "abilities": []
     },
     {
@@ -456,7 +456,7 @@ export default {
       "name": "Drill Operator",
       "element": "water",
       "attack": 2,
-      "image": "/cards/W9.png",
+      "image": "/cards/w9.png",
       "abilities": [
         {
           "type": "draw",
@@ -469,7 +469,7 @@ export default {
       "name": "Selen",
       "element": "water",
       "attack": 3,
-      "image": "/cards/W10.png",
+      "image": "/cards/w10.png",
       "abilities": []
     },
     {
@@ -477,7 +477,7 @@ export default {
       "name": "Toymaker",
       "element": "water",
       "attack": 2,
-      "image": "/cards/W11.png",
+      "image": "/cards/w11.png",
       "abilities": []
     },
     {
@@ -485,7 +485,7 @@ export default {
       "name": "Zilux",
       "element": "water",
       "attack": 2,
-      "image": "/cards/W12.png",
+      "image": "/cards/w12.png",
       "abilities": []
     },
     {
@@ -493,7 +493,7 @@ export default {
       "name": "Dark Mage",
       "element": "water",
       "attack": 2,
-      "image": "/cards/W13.png",
+      "image": "/cards/w13.png",
       "abilities": []
     },
     {
@@ -501,7 +501,7 @@ export default {
       "name": "Falco",
       "element": "water",
       "attack": 3,
-      "image": "/cards/W14.png",
+      "image": "/cards/w14.png",
       "abilities": []
     },
     {
@@ -509,7 +509,7 @@ export default {
       "name": "Kibble",
       "element": "water",
       "attack": 2,
-      "image": "/cards/W15.png",
+      "image": "/cards/w15.png",
       "abilities": []
     },
     {
@@ -517,7 +517,7 @@ export default {
       "name": "Justice Knight",
       "element": "water",
       "attack": 2,
-      "image": "/cards/W16.png",
+      "image": "/cards/w16.png",
       "abilities": [
         {
           "type": "discard",
@@ -530,7 +530,7 @@ export default {
       "name": "Umega",
       "element": "water",
       "attack": 2,
-      "image": "/cards/W17.png",
+      "image": "/cards/w17.png",
       "abilities": [
         {
           "type": "damage",
@@ -543,7 +543,7 @@ export default {
       "name": "Vortex",
       "element": "grass",
       "attack": 4,
-      "image": "/cards/W18.png",
+      "image": "/cards/w18.png",
       "abilities": []
     }
   ]
