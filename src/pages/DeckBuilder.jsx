@@ -1,6 +1,6 @@
 // src/pages/DeckBuilder.jsx
 import React, { useState, useEffect } from "react";
-import cardsData from "../data/cards.js";
+import { CARDS as cardsData } from "../data/cards.js";
 import { encodeDeck } from "../utils/base64.js";
 
 export default function DeckBuilder() {
