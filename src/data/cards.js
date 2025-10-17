@@ -2,9 +2,9 @@ export default {
   "divines": [
     {
       "id": "D1",
-      "name": "Inferna",
+      "name": "Lauch",
       "element": "fire",
-      "hp": 30,
+      "hp": 16,
       "image": "/cards/pyre.png",
       "transcend": "runes>=10",
       "transcendEffect": {
@@ -13,9 +13,9 @@ export default {
     },
     {
       "id": "D2",
-      "name": "Aqualis",
+      "name": "Zephyr",
       "element": "water",
-      "hp": 30,
+      "hp": 18,
       "image": "/cards/tide.png",
       "transcend": "damageInTurn>=6",
       "transcendEffect": {
@@ -24,9 +24,9 @@ export default {
     },
     {
       "id": "D3",
-      "name": "Verdara",
+      "name": "Vena",
       "element": "grass",
-      "hp": 30,
+      "hp": 20,
       "image": "/cards/verdant.png",
       "transcend": "drawn>=14",
       "transcendEffect": {
@@ -37,15 +37,12 @@ export default {
   "followers": [
     {
       "id": "F1",
-      "name": "Fire Card 1",
+      "name": "Hollow",
       "element": "fire",
-      "attack": 1,
+      "attack": 2,
       "image": "/cards/F1.png",
       "abilities": [
-        {
-          "type": "draw",
-          "value": 1
-        },
+       
         {
           "type": "damage",
           "value": 1
@@ -58,89 +55,98 @@ export default {
     },
     {
       "id": "F2",
-      "name": "Water Card 2",
-      "element": "water",
-      "attack": 4,
+      "name": "Caustic Pot",
+      "element": "fire",
+      "attack": 0,
       "image": "/cards/F2.png",
-      "abilities": []
+      "abilities": [
+ {
+          "type": "draw",
+          "value": 2
+        },
+
+]
     },
     {
       "id": "F3",
-      "name": "Grass Card 3",
-      "element": "grass",
+      "name": "Pandough",
+      "element": "fire",
       "attack": 1,
       "image": "/cards/F3.png",
       "abilities": []
     },
     {
       "id": "F4",
-      "name": "Fire Card 4",
+      "name": "Divine Chilli",
       "element": "fire",
-      "attack": 4,
+      "attack": 2,
       "image": "/cards/F4.png",
       "abilities": []
     },
     {
       "id": "F5",
-      "name": "Water Card 5",
-      "element": "water",
-      "attack": 2,
+      "name": "Rival",
+      "element": "fire",
+      "attack": 1,
       "image": "/cards/F5.png",
       "abilities": []
     },
     {
       "id": "F6",
-      "name": "Grass Card 6",
-      "element": "grass",
-      "attack": 6,
+      "name": "lug",
+      "element": "fire",
+      "attack": 1,
       "image": "/cards/F6.png",
       "abilities": []
     },
     {
       "id": "F7",
-      "name": "Fire Card 7",
+      "name": "Eno",
       "element": "fire",
-      "attack": 1,
+      "attack": 2,
       "image": "/cards/F7.png",
-      "abilities": []
+      "abilities": [ ]
     },
     {
       "id": "F8",
-      "name": "Water Card 8",
-      "element": "water",
-      "attack": 2,
+      "name": "G.R.I.M",
+      "element": "fire",
+      "attack": 3,
       "image": "/cards/F8.png",
-      "abilities": []
+      "abilities": [{
+          "type": "discard",
+          "value": 1
+        }]
     },
     {
       "id": "F9",
-      "name": "Grass Card 9",
-      "element": "grass",
-      "attack": 1,
+      "name": "Dinno",
+      "element": "fire",
+      "attack": 2,
       "image": "/cards/F9.png",
       "abilities": []
     },
     {
       "id": "F10",
-      "name": "Fire Card 10",
+      "name": "Mudoink",
       "element": "fire",
-      "attack": 5,
+      "attack": 2,
       "image": "/cards/F10.png",
       "abilities": []
     },
     {
       "id": "F11",
-      "name": "Water Card 11",
-      "element": "water",
+      "name": "Grumble",
+      "element": "fire",
       "attack": 2,
       "image": "/cards/F11.png",
       "abilities": []
     },
     {
       "id": "F12",
-      "name": "Grass Card 12",
-      "element": "grass",
-      "attack": 6,
+      "name": "Recon Drone",
+      "element": "fire",
+      "attack": 1,
       "image": "/cards/F12.png",
       "abilities": [
         {
@@ -151,17 +157,20 @@ export default {
     },
     {
       "id": "F13",
-      "name": "Fire Card 13",
+      "name": "Scorch",
       "element": "fire",
       "attack": 2,
       "image": "/cards/F13.png",
-      "abilities": []
+      "abilities": [{
+          "type": "damage",
+          "value": 3
+        },]
     },
     {
       "id": "F14",
-      "name": "Water Card 14",
-      "element": "water",
-      "attack": 2,
+      "name": "Temple Knight",
+      "element": "fire",
+      "attack": 4,
       "image": "/cards/F14.png",
       "abilities": [
         {
@@ -172,15 +181,18 @@ export default {
     },
     {
       "id": "F15",
-      "name": "Grass Card 15",
-      "element": "grass",
-      "attack": 6,
+      "name": "Blazbee",
+      "element": "fire",
+      "attack": 1,
       "image": "/cards/F15.png",
-      "abilities": []
+      "abilities": [ {
+          "type": "damage",
+          "value": 1
+        }]
     },
     {
       "id": "F16",
-      "name": "Fire Card 16",
+      "name": "Primordial Egg",
       "element": "fire",
       "attack": 1,
       "image": "/cards/F16.png",
@@ -188,63 +200,66 @@ export default {
     },
     {
       "id": "F17",
-      "name": "Water Card 17",
-      "element": "water",
-      "attack": 6,
+      "name": "Draco",
+      "element": "fire",
+      "attack": 2,
       "image": "/cards/F17.png",
       "abilities": []
     },
     {
       "id": "F18",
-      "name": "Grass Card 18",
-      "element": "grass",
+      "name": "Toaster Bot",
+      "element": "fire",
       "attack": 1,
       "image": "/cards/F18.png",
       "abilities": [
         {
           "type": "discard",
-          "value": 1
+          "value": 2
         }
       ]
     },
     {
-      "id": "F19",
-      "name": "Fire Card 19",
-      "element": "fire",
-      "attack": 2,
-      "image": "/cards/F19.png",
-      "abilities": []
-    },
-    {
-      "id": "F20",
-      "name": "Water Card 20",
-      "element": "water",
-      "attack": 2,
-      "image": "/cards/F20.png",
-      "abilities": []
-    },
-    {
-      "id": "F21",
-      "name": "Grass Card 21",
+      "id": "G1",
+      "name": "Rayla Twins",
       "element": "grass",
-      "attack": 5,
-      "image": "/cards/F21.png",
+      "attack": 2,
+      "image": "/cards/G1.png",
       "abilities": []
     },
     {
-      "id": "F22",
-      "name": "Fire Card 22",
-      "element": "fire",
-      "attack": 6,
-      "image": "/cards/F22.png",
+      "id": "G2",
+      "name": "fernram",
+      "element": "grass",
+      "attack": 2,
+      "image": "/cards/G2.png",
+      "abilities": [  {
+          "type": "draw",
+          "value": 2
+        }]
+    },
+    {
+      "id": "G3",
+      "name": "Voidstring",
+      "element": "grass",
+      "attack": 1,
+      "image": "/cards/G3.png",
       "abilities": []
     },
     {
-      "id": "F23",
-      "name": "Water Card 23",
-      "element": "water",
-      "attack": 4,
-      "image": "/cards/F23.png",
+      "id": "G4",
+      "name": "Egg Academy",
+      "element": "grass",
+      "attack": 2,
+      "image": "/cards/G4.png",
+      "abilities": []
+    },
+    {
+      "id": "G5",
+      "name": "Spirit Doctor",
+      "element": "grass",
+      "attack": 2,
+      "image": "/cards/G5.png",
       "abilities": [
         {
           "type": "draw",
@@ -253,35 +268,35 @@ export default {
       ]
     },
     {
-      "id": "F24",
-      "name": "Grass Card 24",
+      "id": "G6",
+      "name": "Xelo",
       "element": "grass",
-      "attack": 5,
-      "image": "/cards/F24.png",
-      "abilities": []
-    },
-    {
-      "id": "F25",
-      "name": "Fire Card 25",
-      "element": "fire",
-      "attack": 4,
-      "image": "/cards/F25.png",
-      "abilities": []
-    },
-    {
-      "id": "F26",
-      "name": "Water Card 26",
-      "element": "water",
       "attack": 2,
-      "image": "/cards/F26.png",
+      "image": "/cards/G6.png",
       "abilities": []
     },
     {
-      "id": "F27",
-      "name": "Grass Card 27",
+      "id": "G7",
+      "name": "Shorin",
       "element": "grass",
-      "attack": 5,
-      "image": "/cards/F27.png",
+      "attack": 3,
+      "image": "/cards/G7.png",
+      "abilities": []
+    },
+    {
+      "id": "G8",
+      "name": "Wild Vyne",
+      "element": "grass",
+      "attack": 2,
+      "image": "/cards/G8.png",
+      "abilities": []
+    },
+    {
+      "id": "G9",
+      "name": "Druidica",
+      "element": "grass",
+      "attack": 2,
+      "image": "/cards/G9.png",
       "abilities": [
         {
           "type": "damage",
@@ -290,72 +305,68 @@ export default {
       ]
     },
     {
-      "id": "F28",
-      "name": "Fire Card 28",
-      "element": "fire",
-      "attack": 1,
-      "image": "/cards/F28.png",
-      "abilities": []
-    },
-    {
-      "id": "F29",
-      "name": "Water Card 29",
-      "element": "water",
-      "attack": 1,
-      "image": "/cards/F29.png",
-      "abilities": []
-    },
-    {
-      "id": "F30",
-      "name": "Grass Card 30",
+      "id": "G10",
+      "name": "ChalaWulu",
       "element": "grass",
       "attack": 1,
-      "image": "/cards/F30.png",
+      "image": "/cards/G10.png",
       "abilities": []
     },
     {
-      "id": "F31",
-      "name": "Fire Card 31",
-      "element": "fire",
-      "attack": 4,
-      "image": "/cards/F31.png",
+      "id": "G11",
+      "name": "Solari",
+      "element": "grass",
+      "attack": 1,
+      "image": "/cards/G11.png",
       "abilities": []
     },
     {
-      "id": "F32",
-      "name": "Water Card 32",
-      "element": "water",
+      "id": "G12",
+      "name": "Mage Knight",
+      "element": "grass",
+      "attack": 1,
+      "image": "/cards/G12.png",
+      "abilities": []
+    },
+    {
+      "id": "G13",
+      "name": "Frilla",
+      "element": "grass",
       "attack": 3,
-      "image": "/cards/F32.png",
+      "image": "/cards/G13.png",
       "abilities": []
     },
     {
-      "id": "F33",
-      "name": "Grass Card 33",
+      "id": "G14",
+      "name": "Pix",
       "element": "grass",
       "attack": 2,
-      "image": "/cards/F33.png",
+      "image": "/cards/G14.png",
       "abilities": []
     },
     {
-      "id": "F34",
-      "name": "Fire Card 34",
-      "element": "fire",
+      "id": "G15",
+      "name": "Wizcrow",
+      "element": "grass",
       "attack": 2,
-      "image": "/cards/F34.png",
+      "image": "/cards/G15.png",
+      "abilities": []
+    },
+    {
+      "id": "G16",
+      "name": "Monolith",
+      "element": "grass",
+      "attack": 5,
+      "image": "/cards/G16.png",
       "abilities": [
-        {
-          "type": "draw",
-          "value": 1
-        }
       ]
     },
     {
-      "id": "F35",
-      "name": "Water Card 35",
-      "element": "water",
-      "attack": 3,
-      "image": "/cards/F35.png",
+      "id": "G17",
+      "name": "Dr Alexi",
+      "element": "grass",
+      "attack": 1,
+      "image": "/cards/G17.png",
       "abilities": [
         {
           "type": "discard",
@@ -364,43 +375,43 @@ export default {
       ]
     },
     {
-      "id": "F36",
-      "name": "Grass Card 36",
+      "id": "G18",
+      "name": "Shible",
       "element": "grass",
-      "attack": 4,
-      "image": "/cards/F36.png",
+      "attack": 2,
+      "image": "/cards/G18.png",
       "abilities": []
     },
     {
-      "id": "F37",
-      "name": "Fire Card 37",
-      "element": "fire",
-      "attack": 3,
-      "image": "/cards/F37.png",
-      "abilities": []
-    },
-    {
-      "id": "F38",
-      "name": "Water Card 38",
+      "id": "W1",
+      "name": "Eyelock",
       "element": "water",
-      "attack": 5,
-      "image": "/cards/F38.png",
+      "attack": 2,
+      "image": "/cards/W1.png",
       "abilities": []
     },
     {
-      "id": "F39",
-      "name": "Grass Card 39",
-      "element": "grass",
-      "attack": 2,
-      "image": "/cards/F39.png",
+      "id": "W2",
+      "name": "Shade",
+      "element": "water",
+      "attack": 1,
+      "image": "/cards/W2.png",
       "abilities": []
     },
     {
-      "id": "F40",
-      "name": "Fire Card 40",
-      "element": "fire",
+      "id": "W3",
+      "name": "Smallboss",
+      "element": "water",
       "attack": 2,
-      "image": "/cards/F40.png",
+      "image": "/cards/W3.png",
+      "abilities": []
+    },
+    {
+      "id": "W4",
+      "name": "Praise Shroom",
+      "element": "water",
+      "attack": 2,
+      "image": "/cards/W4.png",
       "abilities": [
         {
           "type": "damage",
@@ -409,43 +420,43 @@ export default {
       ]
     },
     {
-      "id": "F41",
-      "name": "Water Card 41",
+      "id": "W5",
+      "name": "Forager",
       "element": "water",
-      "attack": 6,
-      "image": "/cards/F41.png",
-      "abilities": []
-    },
-    {
-      "id": "F42",
-      "name": "Grass Card 42",
-      "element": "grass",
       "attack": 2,
-      "image": "/cards/F42.png",
+      "image": "/cards/W5.png",
       "abilities": []
     },
     {
-      "id": "F43",
-      "name": "Fire Card 43",
-      "element": "fire",
-      "attack": 4,
-      "image": "/cards/F43.png",
-      "abilities": []
-    },
-    {
-      "id": "F44",
-      "name": "Water Card 44",
+      "id": "W6",
+      "name": "Spark",
       "element": "water",
-      "attack": 5,
-      "image": "/cards/F44.png",
+      "attack": 1,
+      "image": "/cards/W6.png",
       "abilities": []
     },
     {
-      "id": "F45",
-      "name": "Grass Card 45",
-      "element": "grass",
-      "attack": 6,
-      "image": "/cards/F45.png",
+      "id": "W7",
+      "name": "Lanturn",
+      "element": "water",
+      "attack": 1,
+      "image": "/cards/W7.png",
+      "abilities": []
+    },
+    {
+      "id": "W8",
+      "name": "Birch",
+      "element": "water",
+      "attack": 3,
+      "image": "/cards/W8.png",
+      "abilities": []
+    },
+    {
+      "id": "W9",
+      "name": "Drill Operator",
+      "element": "water",
+      "attack": 2,
+      "image": "/cards/W9.png",
       "abilities": [
         {
           "type": "draw",
@@ -454,59 +465,59 @@ export default {
       ]
     },
     {
-      "id": "F46",
-      "name": "Fire Card 46",
-      "element": "fire",
-      "attack": 5,
-      "image": "/cards/F46.png",
-      "abilities": []
-    },
-    {
-      "id": "F47",
-      "name": "Water Card 47",
-      "element": "water",
-      "attack": 1,
-      "image": "/cards/F47.png",
-      "abilities": []
-    },
-    {
-      "id": "F48",
-      "name": "Grass Card 48",
-      "element": "grass",
-      "attack": 1,
-      "image": "/cards/F48.png",
-      "abilities": []
-    },
-    {
-      "id": "F49",
-      "name": "Fire Card 49",
-      "element": "fire",
-      "attack": 2,
-      "image": "/cards/F49.png",
-      "abilities": []
-    },
-    {
-      "id": "F50",
-      "name": "Water Card 50",
+      "id": "W10",
+      "name": "Selen",
       "element": "water",
       "attack": 3,
-      "image": "/cards/F50.png",
+      "image": "/cards/W10.png",
       "abilities": []
     },
     {
-      "id": "F51",
-      "name": "Grass Card 51",
-      "element": "grass",
+      "id": "W11",
+      "name": "Toymaker",
+      "element": "water",
       "attack": 2,
-      "image": "/cards/F51.png",
+      "image": "/cards/W11.png",
       "abilities": []
     },
     {
-      "id": "F52",
-      "name": "Fire Card 52",
-      "element": "fire",
+      "id": "W12",
+      "name": "Zilux",
+      "element": "water",
       "attack": 2,
-      "image": "/cards/F52.png",
+      "image": "/cards/W12.png",
+      "abilities": []
+    },
+    {
+      "id": "W13",
+      "name": "Dark Mage",
+      "element": "water",
+      "attack": 2,
+      "image": "/cards/W13.png",
+      "abilities": []
+    },
+    {
+      "id": "W14",
+      "name": "Falco",
+      "element": "water",
+      "attack": 3,
+      "image": "/cards/W14.png",
+      "abilities": []
+    },
+    {
+      "id": "W15",
+      "name": "Kibble",
+      "element": "water",
+      "attack": 2,
+      "image": "/cards/W15.png",
+      "abilities": []
+    },
+    {
+      "id": "W16",
+      "name": "Justice Knight",
+      "element": "water",
+      "attack": 2,
+      "image": "/cards/W16.png",
       "abilities": [
         {
           "type": "discard",
@@ -515,11 +526,11 @@ export default {
       ]
     },
     {
-      "id": "F53",
-      "name": "Water Card 53",
+      "id": "W17",
+      "name": "Umega",
       "element": "water",
       "attack": 2,
-      "image": "/cards/F53.png",
+      "image": "/cards/W17.png",
       "abilities": [
         {
           "type": "damage",
@@ -528,11 +539,11 @@ export default {
       ]
     },
     {
-      "id": "F54",
-      "name": "Grass Card 54",
+      "id": "W18",
+      "name": "Vortex",
       "element": "grass",
       "attack": 4,
-      "image": "/cards/F54.png",
+      "image": "/cards/W18.png",
       "abilities": []
     }
   ]
