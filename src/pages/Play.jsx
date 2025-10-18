@@ -156,7 +156,14 @@ export default function Play() {
 return (
   <div>
     {/* Header row */}
-    <div className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+    <div
+      className="card"
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+      }}
+    >
       <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
         <button className="button" onClick={createRoom}>
           Create Room (deck required)
@@ -166,7 +173,7 @@ return (
           value={joinCode}
           onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
           style={{
-            color: "white", // ✅ make text white
+            color: "white",
             backgroundColor: "#10182B",
             border: "1px solid #4B5B8C",
             padding: "4px 8px",
@@ -188,7 +195,7 @@ return (
           onChange={(e) => setDeckCode(e.target.value)}
           style={{
             width: 320,
-            color: "white", // ✅ white text
+            color: "white",
             backgroundColor: "#10182B",
             border: "1px solid #4B5B8C",
             padding: "4px 8px",
@@ -211,8 +218,16 @@ return (
       {/* Opponent Divine (left) */}
       <div className="divine-box card">
         <div className="small">Opponent Divine</div>
-        {opponent && <img src={getCardInfo(opponent.divine).image} alt="" className="card-img" />}
-        <div style={{ marginTop: 8, fontWeight: 700 }}>{opponent ? getCardInfo(opponent.divine).name : "-"}</div>
+        {opponent && (
+          <img
+            src={getCardInfo(opponent.divine).image}
+            alt=""
+            className="card-img"
+          />
+        )}
+        <div style={{ marginTop: 8, fontWeight: 700 }}>
+          {opponent ? getCardInfo(opponent.divine).name : "-"}
+        </div>
         <div className="small" style={{ marginTop: 6 }}>
           HP: {opponent ? opponent.divineHP : "-"}
         </div>
@@ -224,7 +239,7 @@ return (
         </div>
       </div>
 
-      {/* Engage zone — horizontally aligned: Opponent card | Engage area | Your card + Divine */}
+      {/* Engage zone */}
       <div
         style={{
           flex: 1,
@@ -247,13 +262,38 @@ return (
           </div>
         </div>
 
-        {/* Engage center */}
-        <div style={{ textAlign: "center", width: "30%" }}>
-          <div className="small">Engage Zone</div>
-          <div className="small">Cards clash here</div>
+        {/* Engage center with subtle divider */}
+        <div
+          style={{
+            textAlign: "center",
+            width: "30%",
+            position: "relative",
+            padding: "16px 0",
+          }}
+        >
+          {/* Subtle glowing divider */}
+          <div
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: 0,
+              width: "100%",
+              height: 1,
+              background:
+                "linear-gradient(to right, transparent, #4B5B8C, transparent)",
+              opacity: 0.6,
+              transform: "translateY(-50%)",
+            }}
+          />
+          <div className="small" style={{ position: "relative", zIndex: 1 }}>
+            Engage Zone
+          </div>
+          <div className="small" style={{ position: "relative", zIndex: 1 }}>
+            Cards clash here
+          </div>
         </div>
 
-        {/* Your card + Your divine on same line */}
+        {/* Your card + Your divine on same row */}
         <div
           style={{
             display: "flex",
@@ -275,7 +315,10 @@ return (
             </div>
           </div>
 
-          <div className="divine-box card" style={{ textAlign: "center", padding: 8 }}>
+          <div
+            className="divine-box card"
+            style={{ textAlign: "center", padding: 8 }}
+          >
             <div className="small">Your Divine</div>
             {me && (
               <img
@@ -301,37 +344,75 @@ return (
         </div>
       </div>
 
-      {/* Hand and Log remain unchanged below */}
-      ...
-
-
-
-      {/* Hand (single row) */}
+      {/* Hand */}
       <div className="card" style={{ marginTop: 12 }}>
         <h3>Your Hand</h3>
-        <div className="hand" style={{ marginTop: 8, display: "flex", gap: 12, overflowX: "auto", paddingBottom: 8 }}>
-          {me && Array.isArray(me.hand) && me.hand.map((c) => {
-            const ci = getCardInfo(c);
-            // selected if it's our pending (server) OR local selection before confirm
-            const isSelected = selectedCard === c || (pending && pending[meId.current] === c);
-            return (
-              <div key={c} style={{ width: 120, textAlign: "center", cursor: "pointer" }} onClick={() => selectCard(c)}>
-                <img src={ci.image || "/cards/placeholder.png"} alt={ci.name} style={{ width: 120, height: 160, objectFit: "cover", outline: isSelected ? "3px solid white" : "none", borderRadius: 6 }} />
-                <div style={{ marginTop: 6, fontWeight: 700 }}>{ci.name}</div>
-              </div>
-            );
-          })}
+        <div
+          className="hand"
+          style={{
+            marginTop: 8,
+            display: "flex",
+            gap: 12,
+            overflowX: "auto",
+            paddingBottom: 8,
+          }}
+        >
+          {me &&
+            Array.isArray(me.hand) &&
+            me.hand.map((c) => {
+              const ci = getCardInfo(c);
+              const isSelected =
+                selectedCard === c ||
+                (pending && pending[meId.current] === c);
+              return (
+                <div
+                  key={c}
+                  style={{
+                    width: 120,
+                    textAlign: "center",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => selectCard(c)}
+                >
+                  <img
+                    src={ci.image || "/cards/placeholder.png"}
+                    alt={ci.name}
+                    style={{
+                      width: 120,
+                      height: 160,
+                      objectFit: "cover",
+                      outline: isSelected ? "3px solid white" : "none",
+                      borderRadius: 6,
+                    }}
+                  />
+                  <div style={{ marginTop: 6, fontWeight: 700 }}>{ci.name}</div>
+                </div>
+              );
+            })}
         </div>
         <div style={{ marginTop: 8 }}>
-          <button className="button" onClick={confirm} disabled={!selectedCard}>{confirmed ? "Confirmed" : "Confirm"}</button>
+          <button
+            className="button"
+            onClick={confirm}
+            disabled={!selectedCard}
+          >
+            {confirmed ? "Confirmed" : "Confirm"}
+          </button>
         </div>
       </div>
 
       {/* Log */}
       <div className="card" style={{ marginTop: 12 }}>
         <h3>Log</h3>
-        <div style={{ maxHeight: 200, overflow: "auto" }}>{log.map((l, i) => (<div key={i}>{String(l)}</div>))}</div>
+        <div style={{ maxHeight: 200, overflow: "auto" }}>
+          {log.map((l, i) => (
+            <div key={i}>{String(l)}</div>
+          ))}
+        </div>
       </div>
     </div>
+  </div>
+);
+
   );
 }
