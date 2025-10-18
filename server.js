@@ -283,6 +283,7 @@ function resolveEngage(roomId) {
 // -----------------------------
 
 function finalizeEngageAndDraw(r) {
+  // handle discards
   for (const [id, p] of Object.entries(r.players)) {
     if (r.engage[id]) {
       if (!r.discards[id]) r.discards[id] = [];
@@ -291,7 +292,9 @@ function finalizeEngageAndDraw(r) {
     }
   }
 
-  for (const player of r.players) {
+  // handle draws (supports both array or object)
+  const players = Array.isArray(r.players) ? r.players : Object.values(r.players);
+  for (const player of players) {
     const c = drawCard(r, player.id);
     if (c) {
       player.hand.push(c);
@@ -299,8 +302,11 @@ function finalizeEngageAndDraw(r) {
     }
   }
 
+  // reset turn damage
   r.damageThisTurn = {};
 }
+
+
 
 
 function applyAbility(r, actorId, targetId, ab) {
