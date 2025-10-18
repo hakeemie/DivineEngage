@@ -8,15 +8,20 @@ export default function DeckBuilder() {
   const [selectedCards, setSelectedCards] = useState([]);
   const [deckCode, setDeckCode] = useState("");
 
-// Use followers array directly
-const allFollowers = cardsData.followers || [];
+  // ✅ Load divines safely
+  const divines = cardsData?.divines || [];
 
-// Filter followers by element (based on "element" key)
-const fireCards = allFollowers.filter((c) => c.element === "fire");
-const waterCards = allFollowers.filter((c) => c.element === "water");
-const grassCards = allFollowers.filter((c) => c.element === "grass");
+  // ✅ Load followers safely
+  const allFollowers = cardsData?.followers || [];
 
+  // ✅ Split followers by element
+  const fireCards = allFollowers.filter((c) => c.element === "fire");
+  const waterCards = allFollowers.filter((c) => c.element === "water");
+  const grassCards = allFollowers.filter((c) => c.element === "grass");
+
+  // -----------------------------
   // Selection logic
+  // -----------------------------
   const toggleCard = (cardId) => {
     if (selectedCards.includes(cardId)) {
       setSelectedCards(selectedCards.filter((id) => id !== cardId));
@@ -35,6 +40,7 @@ const grassCards = allFollowers.filter((c) => c.element === "grass");
     if (!selectedDivine) return alert("Select a Divine first!");
     if (selectedCards.length !== 15)
       return alert(`You must select exactly 15 followers. You currently have ${selectedCards.length}.`);
+
     const combined = [selectedDivine, ...selectedCards];
     const encoded = encodeDeck(combined);
     setDeckCode(encoded);
@@ -46,6 +52,9 @@ const grassCards = allFollowers.filter((c) => c.element === "grass");
     }
   }, [deckCode]);
 
+  // -----------------------------
+  // Rendering helper
+  // -----------------------------
   const renderCard = (card, isSelected, onClick) => (
     <div
       key={card.id}
@@ -70,11 +79,14 @@ const grassCards = allFollowers.filter((c) => c.element === "grass");
       />
       <div style={{ textAlign: "center", marginTop: 4 }}>
         <strong>{card.name}</strong>
-        <div style={{ fontSize: 12 }}>{card.stats}</div>
+        <div style={{ fontSize: 12 }}>{card.attack ? `ATK: ${card.attack}` : ""}</div>
       </div>
     </div>
   );
 
+  // -----------------------------
+  // Return JSX
+  // -----------------------------
   return (
     <div className="p-6 text-white">
       <h1 className="text-3xl font-bold mb-4">Deck Builder</h1>
@@ -82,11 +94,13 @@ const grassCards = allFollowers.filter((c) => c.element === "grass");
       {/* DIVINES */}
       <h2 className="text-xl font-semibold mb-2">Select Your Divine (1)</h2>
       <div className="flex flex-wrap gap-4 mb-8">
-        {divines.map((divine) => (
-          <div key={divine.id}>
-            {renderCard(divine, selectedDivine === divine.id, () => selectDivine(divine.id))}
-          </div>
-        ))}
+        {divines.length > 0 ? (
+          divines.map((divine) =>
+            renderCard(divine, selectedDivine === divine.id, () => selectDivine(divine.id))
+          )
+        ) : (
+          <p className="text-gray-400">No Divines found</p>
+        )}
       </div>
 
       {/* FOLLOWERS */}
