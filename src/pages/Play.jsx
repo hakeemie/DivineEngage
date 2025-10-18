@@ -344,62 +344,74 @@ return (
         </div>
       </div>
 
-      {/* Hand */}
-      <div className="card" style={{ marginTop: 12 }}>
-        <h3>Your Hand</h3>
-        <div
-          className="hand"
-          style={{
-            marginTop: 8,
-            display: "flex",
-            gap: 12,
-            overflowX: "auto",
-            paddingBottom: 8,
-          }}
-        >
-          {me &&
-            Array.isArray(me.hand) &&
-            me.hand.map((c) => {
-              const ci = getCardInfo(c);
-              const isSelected =
-                selectedCard === c ||
-                (pending && pending[meId.current] === c);
-              return (
-                <div
-                  key={c}
-                  style={{
-                    width: 120,
-                    textAlign: "center",
-                    cursor: "pointer",
-                  }}
-                  onClick={() => selectCard(c)}
-                >
-                  <img
-                    src={ci.image || "/cards/placeholder.png"}
-                    alt={ci.name}
-                    style={{
-                      width: 120,
-                      height: 160,
-                      objectFit: "cover",
-                      outline: isSelected ? "3px solid white" : "none",
-                      borderRadius: 6,
-                    }}
-                  />
-                  <div style={{ marginTop: 6, fontWeight: 700 }}>{ci.name}</div>
-                </div>
-              );
-            })}
-        </div>
-        <div style={{ marginTop: 8 }}>
-          <button
-            className="button"
-            onClick={confirm}
-            disabled={!selectedCard}
+     {/* Hand Section */}
+<div
+  className="card"
+  style={{
+    marginTop: 16,
+    textAlign: "center",
+    padding: "16px 12px",
+    backgroundColor: "#0B1221",
+    border: "1px solid #28314D",
+    borderRadius: 12,
+  }}
+>
+  <h3 style={{ marginBottom: 12 }}>Your Hand</h3>
+
+  <div
+    className="hand"
+    style={{
+      display: "flex",
+      justifyContent: "center",
+      flexWrap: "wrap",
+      gap: 16,
+      marginBottom: 12,
+    }}
+  >
+    {me &&
+      Array.isArray(me.hand) &&
+      me.hand.map((c) => {
+        const ci = getCardInfo(c);
+        const isSelected =
+          selectedCard === c ||
+          (pending && pending[meId.current] === c);
+        return (
+          <div
+            key={c}
+            style={{
+              width: 120,
+              textAlign: "center",
+              cursor: "pointer",
+            }}
+            onClick={() => selectCard(c)}
           >
-            {confirmed ? "Confirmed" : "Confirm"}
-          </button>
-        </div>
-      </div>
+            <img
+              src={ci.image || "/cards/placeholder.png"}
+              alt={ci.name}
+              style={{
+                width: 120,
+                height: 160,
+                objectFit: "cover",
+                outline: isSelected ? "3px solid white" : "none",
+                borderRadius: 6,
+              }}
+            />
+            <div style={{ marginTop: 6, fontWeight: 700 }}>{ci.name}</div>
+          </div>
+        );
+      })}
+  </div>
+
+  <button
+    className="button"
+    onClick={confirm}
+    disabled={!selectedCard}
+    style={{ marginTop: 4 }}
+  >
+    {confirmed ? "Confirmed" : "Confirm"}
+  </button>
+</div>
+
 
       {/* Log */}
       <div className="card" style={{ marginTop: 12 }}>
