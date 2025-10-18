@@ -148,64 +148,256 @@ io.on('connection', socket=>{
     return r.decks[pid].pop();
   }
 
-  function resolveEngage(roomId){
-    const r = rooms[roomId]; if(!r) return;
-    const engages = Object.entries(r.engage).map(([id,card])=>({ id, card }));
-    if(engages.length < 2) return;
-    const totals = {}; const elements = {};
-    for(const e of engages){
-      const info = findCard(e.card); totals[e.id] = (totals[e.id]||0)+(info.attack||0); elements[e.id] = elements[e.id]||new Set(); if(info.element) elements[e.id].add(info.element); r.players[e.id].runes[info.element] = (r.players[e.id].runes[info.element]||0)+1; r.damageThisTurn[e.id] = (r.damageThisTurn[e.id]||0)+(info.attack||0);
+function resolveEngage(roomId) {
+  const r = rooms[roomId];
+  if (!r) return;
+
+  const engages = Object.entries(r.engage).map(([id, card]) => ({ id, card }));
+  if (engages.length < 2) return;
+
+  const totals = {};
+  const elements = {};
+
+  for (const e of engages) {
+    const info = findCard(e.card);
+    if (!info) {
+      console.warn(`Missing card data for ${e.card}`);
+      r.table.push({ system: `⚠️ Could not resolve card "${e.card}" — missing from data.` });
+      continue;
     }
-    let winner=null; let best=-1; let tie=false; for(const id of Object.keys(totals)){ const v=totals[id]||0; if(v>best){ best=v; winner=id; tie=false } else if(v===best) tie=true }
-    if(tie || winner===null){ r.table.push({system:'Round tied — no damage'}); finalizeEngageAndDraw(r); io.emit('roomUpdate', summarize(roomId)); return; }
-    const opponent = Object.keys(r.players).find(id=> id !== winner);
-    let attackValue = totals[winner]||0; let runeBonus=0; for(const el of elements[winner]||[]) runeBonus += (r.players[winner].runes[el]||0);
-    let damage = attackValue + runeBonus;
-    const winnerDiv = findCard(r.players[winner].divine); if(winnerDiv && winnerDiv.id === 'D_FIRE' && r.players[winner].transcended && r.players[winner].transcended_effect && r.players[winner].transcended_effect.type === 'double_damage'){ damage = damage * 2; }
-    r.players[opponent].divineHP -= damage;
-    r.table.push({system:`${r.players[winner].name} won the clash and dealt ${damage} damage to ${r.players[opponent].name}`});
-    // abilities
-    for(const e of engages.filter(x=>x.id===winner)){ const info=findCard(e.card); if(info.abilities) for(const ab of info.abilities){ applyAbility(r,winner,opponent,ab); } }
-    for(const e of engages.filter(x=>x.id===opponent)){ const info=findCard(e.card); if(info.abilities) for(const ab of info.abilities){ applyAbility(r,opponent,winner,ab); } }
-    // check transcendence
-    checkTranscend(r,winner); checkTranscend(r,opponent);
-    // finalize & draw
+
+    const atk = info.attack || 0;
+    const elem = info.element || "neutral";
+
+    totals[e.id] = (totals[e.id] || 0) + atk;
+
+    if (!elements[e.id]) elements[e.id] = new Set();
+    elements[e.id].add(elem);
+
+    const player = r.players.find((p) => p.id === e.id);
+    if (player) {
+      player.runes[elem] = (player.runes[elem] || 0) + 1;
+      r.damageThisTurn[e.id] = (r.damageThisTurn[e.id] || 0) + atk;
+    }
+  }
+
+  // Determine winner
+  let winner = null;
+  let best = -1;
+  let tie = false;
+  for (const id of Object.keys(totals)) {
+    const v = totals[id] || 0;
+    if (v > best) {
+      best = v;
+      winner = id;
+      tie = false;
+    } else if (v === best) tie = true;
+  }
+
+  if (tie || winner === null) {
+    r.table.push({ system: "Round tied — no damage" });
     finalizeEngageAndDraw(r);
-    // check victory and set matchOutcome
-    if(r.players[opponent].divineHP <= 0 || r.players[winner].divineHP <= 0){
-      const winId = r.players[opponent].divineHP <= 0 ? winner : (r.players[winner].divineHP <= 0 ? opponent : winner);
-      const loseId = winId === winner ? opponent : winner;
-      r.matchOutcome = { winner: winId, loser: loseId };
-      r.table.push({system:`Match ended. Winner: ${r.players[winId].name}`});
-      io.to(roomId).emit('roomUpdate', summarize(roomId));
-      // expire room after short delay
-      setTimeout(()=>{ delete rooms[roomId]; }, 5000);
-      return;
+    io.emit("roomUpdate", summarize(roomId));
+    return;
+  }
+
+  const opponent = Object.keys(r.players).find((id) => id !== winner);
+  let attackValue = totals[winner] || 0;
+  let runeBonus = 0;
+
+  const winnerPlayer = r.players.find((p) => p.id === winner);
+  for (const el of elements[winner] || []) {
+    if (winnerPlayer) runeBonus += (winnerPlayer.runes[el] || 0);
+  }
+
+  let damage = attackValue + runeBonus;
+
+  const winnerDiv = winnerPlayer ? findCard(winnerPlayer.divine) : null;
+  if (
+    winnerDiv &&
+    winnerDiv.id === "D_FIRE" &&
+    winnerPlayer.transcended &&
+    winnerPlayer.transcended_effect &&
+    winnerPlayer.transcended_effect.type === "double_damage"
+  ) {
+    damage *= 2;
+  }
+
+  const opponentPlayer = r.players.find((p) => p.id === opponent);
+  if (opponentPlayer) opponentPlayer.divineHP -= damage;
+
+  r.table.push({
+    system: `${winnerPlayer?.name || "Unknown"} won the clash and dealt ${damage} damage to ${
+      opponentPlayer?.name || "opponent"
+    }`,
+  });
+
+  // --- Abilities phase ---
+  for (const e of engages.filter((x) => x.id === winner)) {
+    const info = findCard(e.card);
+    if (!info) continue;
+    if (info.abilities) {
+      for (const ab of info.abilities) applyAbility(r, winner, opponent, ab);
     }
-    io.to(roomId).emit('roomUpdate', summarize(roomId));
   }
 
-  function finalizeEngageAndDraw(r){
-    for(const [id,p] of Object.entries(r.players)){
-      if(r.engage[id]){ if(!r.discards[id]) r.discards[id]=[]; r.discards[id].push(r.engage[id]); delete r.engage[id]; }
+  for (const e of engages.filter((x) => x.id === opponent)) {
+    const info = findCard(e.card);
+    if (!info) continue;
+    if (info.abilities) {
+      for (const ab of info.abilities) applyAbility(r, opponent, winner, ab);
     }
-    for(const id of Object.keys(r.players)){ const c = drawCard(r, id); if(c){ r.players[id].hand.push(c); r.players[id].drawn = (r.players[id].drawn||0)+1 } }
-    r.damageThisTurn = {};
   }
 
-  function applyAbility(r, actorId, targetId, ab){
-    const actor = r.players[actorId]; const target = r.players[targetId];
-    if(ab.type === 'draw'){ for(let i=0;i<(ab.value||1);i++){ const c = drawCard(r, actorId); if(c){ actor.hand.push(c); actor.drawn = (actor.drawn||0)+1 } } r.table.push({system:`${actor.name} drew ${ab.value||1} card(s) via ability`}); }
-    else if(ab.type === 'damage'){ const dmg = ab.value||1; target.divineHP -= dmg; r.table.push({system:`${actor.name} dealt ${dmg} damage to ${target.name} via ability`}); }
-    else if(ab.type === 'discard'){ for(let i=0;i<(ab.value||1);i++){ if(target.hand.length===0) break; const ri=Math.floor(Math.random()*target.hand.length); const removed = target.hand.splice(ri,1)[0]; if(!r.discards[target.id]) r.discards[target.id]=[]; r.discards[target.id].push(removed); r.table.push({system:`${actor.name} forced ${target.name} to discard ${removed}`}); const tdiv=findCard(target.divine); if(tdiv && target.transcended && target.transcended_effect && target.transcended_effect.type==='double_discard'){ if(target.hand.length>0){ const ri2=Math.floor(Math.random()*target.hand.length); const removed2 = target.hand.splice(ri2,1)[0]; r.discards[target.id].push(removed2); r.table.push({system:`Discard triggered twice: ${target.name} discarded ${removed2}`}); } } } }
+  // --- Transcendence checks ---
+  checkTranscend(r, winner);
+  checkTranscend(r, opponent);
+
+  // --- Finalize & draw ---
+  finalizeEngageAndDraw(r);
+
+  // --- Victory check ---
+  if (opponentPlayer?.divineHP <= 0 || winnerPlayer?.divineHP <= 0) {
+    const winId =
+      opponentPlayer?.divineHP <= 0
+        ? winner
+        : winnerPlayer?.divineHP <= 0
+        ? opponent
+        : winner;
+    const loseId = winId === winner ? opponent : winner;
+    r.matchOutcome = { winner: winId, loser: loseId };
+    r.table.push({ system: `Match ended. Winner: ${r.players.find(p => p.id === winId)?.name || 'Unknown'}` });
+    io.to(roomId).emit("roomUpdate", summarize(roomId));
+    setTimeout(() => {
+      delete rooms[roomId];
+    }, 5000);
+    return;
   }
 
-  function checkTranscend(r, playerId){
-    const p = r.players[playerId]; if(!p) return; if(p.transcended) return; const dv = findCard(p.divine); if(!dv) return; const cond = dv.transcend || '';
-    if(cond.startsWith('runes>=')){ const num=parseInt(cond.split('>=')[1],10); const total=(p.runes.fire||0)+(p.runes.water||0)+(p.runes.grass||0); if(total>=num){ p.transcended=true; p.transcended_effect=dv.transcendEffect; r.table.push({system:`${p.name}'s Divine ${dv.name} has transcended!`}); } }
-    else if(cond.startsWith('damageInTurn>=')){ const num=parseInt(cond.split('>=')[1],10); const dmg = r.damageThisTurn && r.damageThisTurn[playerId] || 0; if(dmg>=num){ p.transcended=true; p.transcended_effect=dv.transcendEffect; r.table.push({system:`${p.name}'s Divine ${dv.name} has transcended!`}); } }
-    else if(cond.startsWith('drawn>=')){ const num=parseInt(cond.split('>=')[1],10); if((p.drawn||0) >= num){ p.transcended=true; p.transcended_effect=dv.transcendEffect; r.table.push({system:`${p.name}'s Divine ${dv.name} has transcended!`}); if(dv.transcendEffect && dv.transcendEffect.type==='set_rune_to_6'){ const keys=['fire','water','grass']; let best='fire'; let bestv=p.runes.fire||0; for(const k of keys){ if((p.runes[k]||0) > bestv){ best=k; bestv=p.runes[k]||0 } } p.runes[best]=6; r.table.push({system:`${p.name}'s Divine sets ${best} rune to 6 permanently.`}); } } }
+  io.to(roomId).emit("roomUpdate", summarize(roomId));
+}
+
+
+// -----------------------------
+// Helper Functions
+// -----------------------------
+
+function finalizeEngageAndDraw(r) {
+  for (const [id, p] of Object.entries(r.players)) {
+    if (r.engage[id]) {
+      if (!r.discards[id]) r.discards[id] = [];
+      r.discards[id].push(r.engage[id]);
+      delete r.engage[id];
+    }
   }
+
+  for (const player of r.players) {
+    const c = drawCard(r, player.id);
+    if (c) {
+      player.hand.push(c);
+      player.drawn = (player.drawn || 0) + 1;
+    }
+  }
+
+  r.damageThisTurn = {};
+}
+
+
+function applyAbility(r, actorId, targetId, ab) {
+  const actor = r.players.find(p => p.id === actorId);
+  const target = r.players.find(p => p.id === targetId);
+  if (!actor || !target) return;
+
+  if (ab.type === "draw") {
+    for (let i = 0; i < (ab.value || 1); i++) {
+      const c = drawCard(r, actorId);
+      if (c) {
+        actor.hand.push(c);
+        actor.drawn = (actor.drawn || 0) + 1;
+      }
+    }
+    r.table.push({ system: `${actor.name} drew ${ab.value || 1} card(s) via ability` });
+  } else if (ab.type === "damage") {
+    const dmg = ab.value || 1;
+    target.divineHP -= dmg;
+    r.table.push({ system: `${actor.name} dealt ${dmg} damage to ${target.name} via ability` });
+  } else if (ab.type === "discard") {
+    for (let i = 0; i < (ab.value || 1); i++) {
+      if (target.hand.length === 0) break;
+      const ri = Math.floor(Math.random() * target.hand.length);
+      const removed = target.hand.splice(ri, 1)[0];
+      if (!r.discards[target.id]) r.discards[target.id] = [];
+      r.discards[target.id].push(removed);
+      r.table.push({ system: `${actor.name} forced ${target.name} to discard ${removed}` });
+
+      const tdiv = findCard(target.divine);
+      if (
+        tdiv &&
+        target.transcended &&
+        target.transcended_effect &&
+        target.transcended_effect.type === "double_discard"
+      ) {
+        if (target.hand.length > 0) {
+          const ri2 = Math.floor(Math.random() * target.hand.length);
+          const removed2 = target.hand.splice(ri2, 1)[0];
+          r.discards[target.id].push(removed2);
+          r.table.push({ system: `Discard triggered twice: ${target.name} discarded ${removed2}` });
+        }
+      }
+    }
+  }
+}
+
+
+function checkTranscend(r, playerId) {
+  const p = r.players.find(pl => pl.id === playerId);
+  if (!p || p.transcended) return;
+
+  const dv = findCard(p.divine);
+  if (!dv) return;
+
+  const cond = dv.transcend || "";
+
+  if (cond.startsWith("runes>=")) {
+    const num = parseInt(cond.split(">=")[1], 10);
+    const total = (p.runes.fire || 0) + (p.runes.water || 0) + (p.runes.grass || 0);
+    if (total >= num) {
+      p.transcended = true;
+      p.transcended_effect = dv.transcendEffect;
+      r.table.push({ system: `${p.name}'s Divine ${dv.name} has transcended!` });
+    }
+  } else if (cond.startsWith("damageInTurn>=")) {
+    const num = parseInt(cond.split(">=")[1], 10);
+    const dmg = (r.damageThisTurn && r.damageThisTurn[playerId]) || 0;
+    if (dmg >= num) {
+      p.transcended = true;
+      p.transcended_effect = dv.transcendEffect;
+      r.table.push({ system: `${p.name}'s Divine ${dv.name} has transcended!` });
+    }
+  } else if (cond.startsWith("drawn>=")) {
+    const num = parseInt(cond.split(">=")[1], 10);
+    if ((p.drawn || 0) >= num) {
+      p.transcended = true;
+      p.transcended_effect = dv.transcendEffect;
+      r.table.push({ system: `${p.name}'s Divine ${dv.name} has transcended!` });
+
+      if (dv.transcendEffect && dv.transcendEffect.type === "set_rune_to_6") {
+        const keys = ["fire", "water", "grass"];
+        let best = "fire";
+        let bestv = p.runes.fire || 0;
+        for (const k of keys) {
+          if ((p.runes[k] || 0) > bestv) {
+            best = k;
+            bestv = p.runes[k] || 0;
+          }
+        }
+        p.runes[best] = 6;
+        r.table.push({ system: `${p.name}'s Divine sets ${best} rune to 6 permanently.` });
+      }
+    }
+  }
+}
+
 
 }); // end io.on
 
