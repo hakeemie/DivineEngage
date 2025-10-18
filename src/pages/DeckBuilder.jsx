@@ -8,17 +8,13 @@ export default function DeckBuilder() {
   const [selectedCards, setSelectedCards] = useState([]);
   const [deckCode, setDeckCode] = useState("");
 
- const allFollowers = [
-  ...(cardsData.fire || []),
-  ...(cardsData.water || []),
-  ...(cardsData.grass || []),
-];
+// Use followers array directly
+const allFollowers = cardsData.followers || [];
 
-// Filter cards into elements
-const fireCards = (cardsData.fire || []).filter((c) => c.id.toLowerCase().startsWith("f"));
-const waterCards = (cardsData.water || []).filter((c) => c.id.toLowerCase().startsWith("w"));
-const grassCards = (cardsData.grass || []).filter((c) => c.id.toLowerCase().startsWith("g"));
-const divines = cardsData.divines || [];
+// Filter followers by element (based on "element" key)
+const fireCards = allFollowers.filter((c) => c.element === "fire");
+const waterCards = allFollowers.filter((c) => c.element === "water");
+const grassCards = allFollowers.filter((c) => c.element === "grass");
 
   // Selection logic
   const toggleCard = (cardId) => {
