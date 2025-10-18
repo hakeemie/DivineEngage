@@ -8,20 +8,15 @@ export default function DeckBuilder() {
   const [selectedCards, setSelectedCards] = useState([]);
   const [deckCode, setDeckCode] = useState("");
 
-  // ✅ Load divines safely
-  const divines = cardsData?.divines || [];
+  // ✅ Divines
+  const divines = cardsData.divines || [];
 
-  // ✅ Load followers safely
-  const allFollowers = cardsData?.followers || [];
+  // ✅ Followers — direct access by element
+  const fireCards = cardsData.followers.fire || [];
+  const waterCards = cardsData.followers.water || [];
+  const grassCards = cardsData.followers.grass || [];
 
-  // ✅ Split followers by element
-  const fireCards = allFollowers.filter((c) => c.element === "fire");
-  const waterCards = allFollowers.filter((c) => c.element === "water");
-  const grassCards = allFollowers.filter((c) => c.element === "grass");
-
-  // -----------------------------
-  // Selection logic
-  // -----------------------------
+  // --- Selection logic ---
   const toggleCard = (cardId) => {
     if (selectedCards.includes(cardId)) {
       setSelectedCards(selectedCards.filter((id) => id !== cardId));
@@ -40,7 +35,6 @@ export default function DeckBuilder() {
     if (!selectedDivine) return alert("Select a Divine first!");
     if (selectedCards.length !== 15)
       return alert(`You must select exactly 15 followers. You currently have ${selectedCards.length}.`);
-
     const combined = [selectedDivine, ...selectedCards];
     const encoded = encodeDeck(combined);
     setDeckCode(encoded);
@@ -52,9 +46,6 @@ export default function DeckBuilder() {
     }
   }, [deckCode]);
 
-  // -----------------------------
-  // Rendering helper
-  // -----------------------------
   const renderCard = (card, isSelected, onClick) => (
     <div
       key={card.id}
@@ -84,9 +75,6 @@ export default function DeckBuilder() {
     </div>
   );
 
-  // -----------------------------
-  // Return JSX
-  // -----------------------------
   return (
     <div className="p-6 text-white">
       <h1 className="text-3xl font-bold mb-4">Deck Builder</h1>
@@ -94,12 +82,8 @@ export default function DeckBuilder() {
       {/* DIVINES */}
       <h2 className="text-xl font-semibold mb-2">Select Your Divine (1)</h2>
       <div className="flex flex-wrap gap-4 mb-8">
-        {divines.length > 0 ? (
-          divines.map((divine) =>
-            renderCard(divine, selectedDivine === divine.id, () => selectDivine(divine.id))
-          )
-        ) : (
-          <p className="text-gray-400">No Divines found</p>
+        {divines.map((divine) =>
+          renderCard(divine, selectedDivine === divine.id, () => selectDivine(divine.id))
         )}
       </div>
 
@@ -110,7 +94,7 @@ export default function DeckBuilder() {
         <div className="card p-2 rounded-lg bg-slate-900">
           <h3 className="text-lg font-bold text-center mb-2">FIRE</h3>
           <div className="grid grid-cols-2 gap-2">
-            {fireCards.slice(0, 18).map((card) =>
+            {fireCards.map((card) =>
               renderCard(card, selectedCards.includes(card.id), () => toggleCard(card.id))
             )}
           </div>
@@ -120,7 +104,7 @@ export default function DeckBuilder() {
         <div className="card p-2 rounded-lg bg-slate-900">
           <h3 className="text-lg font-bold text-center mb-2">WATER</h3>
           <div className="grid grid-cols-2 gap-2">
-            {waterCards.slice(0, 18).map((card) =>
+            {waterCards.map((card) =>
               renderCard(card, selectedCards.includes(card.id), () => toggleCard(card.id))
             )}
           </div>
@@ -130,7 +114,7 @@ export default function DeckBuilder() {
         <div className="card p-2 rounded-lg bg-slate-900">
           <h3 className="text-lg font-bold text-center mb-2">GRASS</h3>
           <div className="grid grid-cols-2 gap-2">
-            {grassCards.slice(0, 18).map((card) =>
+            {grassCards.map((card) =>
               renderCard(card, selectedCards.includes(card.id), () => toggleCard(card.id))
             )}
           </div>
