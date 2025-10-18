@@ -15,6 +15,7 @@ export default function Play() {
   const [log, setLog] = useState([]);
   const meId = useRef(null);
 
+  // ---- establish socket ----
   useEffect(() => {
     socket = io();
     socket.on("connect", () => {
@@ -24,32 +25,39 @@ export default function Play() {
     socket.on("roomUpdate", (r) => setRoom(r));
     socket.on("roomLog", (m) => setLog((l) => [...l, m]));
     socket.on("gameOver", (g) => setLog((l) => [...l, `Game Over: ${JSON.stringify(g)}`]));
+
     return () => {
       if (socket) socket.disconnect();
       socket = null;
     };
   }, []);
 
-  // --- robust card lookup: flattens followers object and searches divines ---
+  // ---- normalize players ----
+  function getPlayers() {
+    if (!room || !room.players) return [];
+    if (Array.isArray(room.players)) return room.players;
+    return Object.values(room.players);
+  }
+
+  // ---- robust card lookup ----
   function getCardInfo(id) {
     if (!id) return { name: "", image: "/cards/placeholder.png", attack: 0, abilities: [] };
 
     const lower = id.toString().toLowerCase();
 
-    // build flat followers array safely (handles missing structure)
-    const followersObj = cardsData && cardsData.followers ? cardsData.followers : {};
+    const followersObj = cardsData?.followers || {};
     const followerGroups = Object.values(followersObj).filter(Boolean);
     const allFollowers = followerGroups.flat ? followerGroups.flat() : [].concat(...followerGroups || []);
 
-    const foundFollower = allFollowers.find((f) => (f.id || "").toString().toLowerCase() === lower);
-    const foundDivine = (cardsData.divines || []).find((d) => (d.id || "").toString().toLowerCase() === lower);
+    const foundFollower = allFollowers.find((f) => (f.id || "").toLowerCase() === lower);
+    const foundDivine = (cardsData.divines || []).find((d) => (d.id || "").toLowerCase() === lower);
 
     const card = foundFollower || foundDivine;
     if (!card) return { name: id, image: "/cards/placeholder.png", attack: 0, abilities: [] };
     return card;
   }
 
-  // Room actions
+  // ---- room actions ----
   function createRoom() {
     if (!deckCode) return alert("Paste deck code first");
     const arr = decodeDeck(deckCode);
@@ -60,6 +68,7 @@ export default function Play() {
     socket.emit("createRoom", { roomId, deck: followers, divine });
     setRoom({ id: roomId });
   }
+
   function joinRoom() {
     if (!deckCode) return alert("Paste deck code first");
     if (!joinCode) return alert("Enter room id");
@@ -67,6 +76,7 @@ export default function Play() {
     if (!arr || arr.length !== 16) return alert("Invalid deck code");
     socket.emit("joinRoom", { roomId: joinCode, deck: arr.slice(1), divine: arr[0] });
   }
+
   function startBot() {
     if (!deckCode) return alert("Paste deck code first");
     socket.emit("createRoomWithDeck", {
@@ -76,64 +86,59 @@ export default function Play() {
     });
   }
 
-  // select / confirm
+  // ---- select & confirm ----
   function selectCard(c) {
     setSelectedCard(c);
     setConfirmed(false);
   }
+
   function confirm() {
-    if (!selectedCard) return alert("Select a card");
+    if (!selectedCard) return alert("Select a card first");
     if (!room || !room.id) return alert("Not in a room");
+    if (!meId.current) return alert("Player ID not ready");
+
     socket.emit("playerConfirm", { roomId: room.id, card: selectedCard }, (res) => {
-      if (res && res.error) alert(res.error);
+      if (res?.error) alert(res.error);
       else {
         setConfirmed(true);
-        // clear selection so UI uses pending state from server
         setSelectedCard(null);
       }
     });
   }
 
-  // Pending map: which card each player has pending (hidden from opponent until reveal)
+  // ---- data derivations ----
+  const players = getPlayers();
+  const me = players.find((p) => p.id === meId.current);
+  const opponent = players.find((p) => p.id !== meId.current);
+
   const pending = {};
-  if (room && Array.isArray(room.players)) {
-    room.players.forEach((p) => {
-      if (p.pending) pending[p.id] = p.pending;
-    });
-  }
+  players.forEach((p) => {
+    if (p.pending) pending[p.id] = p.pending;
+  });
 
-  // Engage map (revealed when server sets engage)
   const engageMap = {};
-  if (room && Array.isArray(room.players)) {
-    room.players.forEach((p) => {
-      if (p.engage) engageMap[p.id] = p.engage;
-    });
-  }
+  players.forEach((p) => {
+    if (p.engage) engageMap[p.id] = p.engage;
+  });
 
-  // find me/opponent objects in room.players — use meId.current, not socket?.id (safer)
-  const me = room && Array.isArray(room.players) ? room.players.find((p) => p.id === meId.current) : null;
-  const opponent = room && Array.isArray(room.players) ? room.players.find((p) => p.id !== meId.current) : null;
-
+  // ---- match outcome ----
   useEffect(() => {
-    // show alerts when matchOutcome appears
     if (room && room.matchOutcome) {
       const isWinner = room.matchOutcome.winner === meId.current;
       if (isWinner) alert("You won! Opponent divine fell below 1 HP.");
       else alert("You lost! Your divine fell below 1 HP.");
     }
-  }, [room && room.matchOutcome]);
+  }, [room?.matchOutcome]);
 
-  // helper ui: show card img (covers pending vs revealed logic)
+  // ---- render helpers ----
   function renderOpponentCard() {
     if (!opponent) return <div className="card-img" />;
     const oppId = opponent.id;
-    // if opponent.engage is present (server revealed) show image; if only pending exists, show hidden placeholder
     if (engageMap[oppId]) {
       const ci = getCardInfo(engageMap[oppId]);
-      return <img src={ci.image || "/cards/placeholder.png"} alt={ci.name} className="card-img" />;
+      return <img src={ci.image} alt={ci.name} className="card-img" />;
     }
     if (pending[oppId]) {
-      // show hidden placeholder until reveal
       return <div className="card-img" style={{ backgroundColor: "#061122" }} />;
     }
     return <div className="card-img" />;
@@ -142,33 +147,36 @@ export default function Play() {
   function renderMyCard() {
     if (!me) return <div className="card-img" />;
     const myId = me.id;
-    // if my engage is present (server revealed) show it; otherwise if I have pending show my pending image (we let me see my pending)
     if (engageMap[myId]) {
       const ci = getCardInfo(engageMap[myId]);
-      return <img src={ci.image || "/cards/placeholder.png"} alt={ci.name} className="card-img" />;
+      return <img src={ci.image} alt={ci.name} className="card-img" />;
     }
     if (pending[myId]) {
       const ci = getCardInfo(pending[myId]);
-      return <img src={ci.image || "/cards/placeholder.png"} alt={ci.name} className="card-img selected" />;
+      return <img src={ci.image} alt={ci.name} className="card-img selected" />;
     }
     return <div className="card-img" />;
   }
 
+  // ---- fallback render ----
+  if (!room || !room.players) {
+    return (
+      <div style={{ color: "white", padding: 40 }}>
+        Waiting for room data or connection...
+      </div>
+    );
+  }
+
+  // ---- UI ----
   return (
     <div>
       {/* Header row */}
       <div
         className="card"
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
+        style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}
       >
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <button className="button" onClick={createRoom}>
-            Create Room (deck required)
-          </button>
+          <button className="button" onClick={createRoom}>Create Room</button>
           <input
             placeholder="Join code"
             value={joinCode}
@@ -181,14 +189,11 @@ export default function Play() {
               borderRadius: 6,
             }}
           />
-          <button className="button" onClick={joinRoom}>
-            Join Room
-          </button>
+          <button className="button" onClick={joinRoom}>Join Room</button>
           <div style={{ marginLeft: 12 }}>or</div>
-          <button className="button" onClick={startBot}>
-            Play vs Bot
-          </button>
+          <button className="button" onClick={startBot}>Play vs Bot</button>
         </div>
+
         <div>
           <input
             placeholder="Paste deck code here"
@@ -216,16 +221,10 @@ export default function Play() {
           marginTop: 12,
         }}
       >
-        {/* Opponent Divine (left) */}
+        {/* Opponent Divine */}
         <div className="divine-box card">
           <div className="small">Opponent Divine</div>
-          {opponent && (
-            <img
-              src={getCardInfo(opponent.divine).image}
-              alt=""
-              className="card-img"
-            />
-          )}
+          {opponent && <img src={getCardInfo(opponent.divine).image} alt="" className="card-img" />}
           <div style={{ marginTop: 8, fontWeight: 700 }}>
             {opponent ? getCardInfo(opponent.divine).name : "-"}
           </div>
@@ -242,6 +241,7 @@ export default function Play() {
 
         {/* Engage zone */}
         <div
+          className="card"
           style={{
             flex: 1,
             marginLeft: 12,
@@ -250,29 +250,18 @@ export default function Play() {
             justifyContent: "space-between",
             alignItems: "center",
           }}
-          className="card"
         >
           {/* Opponent card */}
           <div style={{ textAlign: "center", width: "25%" }}>
             <div className="small">Opponent Card</div>
             <div style={{ marginTop: 8 }}>{renderOpponentCard()}</div>
             <div className="small" style={{ marginTop: 8 }}>
-              {engageMap[opponent?.id]
-                ? getCardInfo(engageMap[opponent.id]).name
-                : ""}
+              {engageMap[opponent?.id] ? getCardInfo(engageMap[opponent.id]).name : ""}
             </div>
           </div>
 
-          {/* Engage center with subtle divider */}
-          <div
-            style={{
-              textAlign: "center",
-              width: "30%",
-              position: "relative",
-              padding: "16px 0",
-            }}
-          >
-            {/* Subtle glowing divider */}
+          {/* Engage center divider */}
+          <div style={{ textAlign: "center", width: "30%", position: "relative", padding: "16px 0" }}>
             <div
               style={{
                 position: "absolute",
@@ -280,21 +269,16 @@ export default function Play() {
                 left: 0,
                 width: "100%",
                 height: 1,
-                background:
-                  "linear-gradient(to right, transparent, #4B5B8C, transparent)",
+                background: "linear-gradient(to right, transparent, #4B5B8C, transparent)",
                 opacity: 0.6,
                 transform: "translateY(-50%)",
               }}
             />
-            <div className="small" style={{ position: "relative", zIndex: 1 }}>
-              Engage Zone
-            </div>
-            <div className="small" style={{ position: "relative", zIndex: 1 }}>
-              Cards clash here
-            </div>
+            <div className="small" style={{ position: "relative", zIndex: 1 }}>Engage Zone</div>
+            <div className="small" style={{ position: "relative", zIndex: 1 }}>Cards clash here</div>
           </div>
 
-          {/* Your card + Your divine on same row */}
+          {/* Your card + divine */}
           <div
             style={{
               display: "flex",
@@ -308,27 +292,18 @@ export default function Play() {
               <div className="small">Your Card</div>
               <div style={{ marginTop: 8 }}>{renderMyCard()}</div>
               <div className="small" style={{ marginTop: 8 }}>
-                {engageMap[me?.id]
-                  ? getCardInfo(engageMap[me.id]).name
-                  : pending[me?.id]
-                  ? getCardInfo(pending[me[id]]).name
-                  : ""}
+                {me &&
+                  (engageMap[me.id]
+                    ? getCardInfo(engageMap[me.id]).name
+                    : pending[me.id]
+                    ? getCardInfo(pending[me.id]).name
+                    : "")}
               </div>
             </div>
 
-            <div
-              className="divine-box card"
-              style={{ textAlign: "center", padding: 8 }}
-            >
+            <div className="divine-box card" style={{ textAlign: "center", padding: 8 }}>
               <div className="small">Your Divine</div>
-              {me && (
-                <img
-                  src={getCardInfo(me.divine).image}
-                  alt={me.divine}
-                  className="card-img"
-                  style={{ width: 100 }}
-                />
-              )}
+              {me && <img src={getCardInfo(me.divine).image} alt={me.divine} className="card-img" style={{ width: 100 }} />}
               <div style={{ marginTop: 4, fontWeight: 700 }}>
                 {me ? getCardInfo(me.divine).name : "-"}
               </div>
@@ -346,9 +321,7 @@ export default function Play() {
         </div>
       </div>
 
-      {/* -------------------------
-          HAND SECTION (outside main battle zone so it sits below)
-          ------------------------- */}
+      {/* Hand Section */}
       <div
         className="card"
         style={{
@@ -361,7 +334,6 @@ export default function Play() {
         }}
       >
         <h3 style={{ marginBottom: 12 }}>Your Hand</h3>
-
         <div
           className="hand"
           style={{
@@ -377,16 +349,11 @@ export default function Play() {
             me.hand.map((c) => {
               const ci = getCardInfo(c);
               const isSelected =
-                selectedCard === c ||
-                (pending && pending[meId.current] === c);
+                selectedCard === c || (pending && pending[meId.current] === c);
               return (
                 <div
                   key={c}
-                  style={{
-                    width: 120,
-                    textAlign: "center",
-                    cursor: "pointer",
-                  }}
+                  style={{ width: 120, textAlign: "center", cursor: "pointer" }}
                   onClick={() => selectCard(c)}
                 >
                   <img
