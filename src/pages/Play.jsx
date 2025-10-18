@@ -153,88 +153,158 @@ export default function Play() {
     }
     return <div className="card-img" />;
   }
+return (
+  <div>
+    {/* Header row */}
+    <div className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        <button className="button" onClick={createRoom}>
+          Create Room (deck required)
+        </button>
+        <input
+          placeholder="Join code"
+          value={joinCode}
+          onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+          style={{
+            color: "white", // ✅ make text white
+            backgroundColor: "#10182B",
+            border: "1px solid #4B5B8C",
+            padding: "4px 8px",
+            borderRadius: 6,
+          }}
+        />
+        <button className="button" onClick={joinRoom}>
+          Join Room
+        </button>
+        <div style={{ marginLeft: 12 }}>or</div>
+        <button className="button" onClick={startBot}>
+          Play vs Bot
+        </button>
+      </div>
+      <div>
+        <input
+          placeholder="Paste deck code here"
+          value={deckCode}
+          onChange={(e) => setDeckCode(e.target.value)}
+          style={{
+            width: 320,
+            color: "white", // ✅ white text
+            backgroundColor: "#10182B",
+            border: "1px solid #4B5B8C",
+            padding: "4px 8px",
+            borderRadius: 6,
+          }}
+        />
+      </div>
+    </div>
 
-  return (
-    <div>
-      <div className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <button className="button" onClick={createRoom}>
-            Create Room (deck required)
-          </button>
-          <input placeholder="Join code" value={joinCode} onChange={(e) => setJoinCode(e.target.value.toUpperCase())} />
-          <button className="button" onClick={joinRoom}>
-            Join Room
-          </button>
-          <div style={{ marginLeft: 12 }}>or</div>
-          <button className="button" onClick={startBot}>
-            Play vs Bot
-          </button>
+    {/* Main battle zone */}
+    <div
+      className="card"
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "flex-start",
+        marginTop: 12,
+      }}
+    >
+      {/* Opponent Divine (left) */}
+      <div className="divine-box card">
+        <div className="small">Opponent Divine</div>
+        {opponent && <img src={getCardInfo(opponent.divine).image} alt="" className="card-img" />}
+        <div style={{ marginTop: 8, fontWeight: 700 }}>{opponent ? getCardInfo(opponent.divine).name : "-"}</div>
+        <div className="small" style={{ marginTop: 6 }}>
+          HP: {opponent ? opponent.divineHP : "-"}
         </div>
-        <div>
-          <input
-            placeholder="Paste deck code here"
-            value={deckCode}
-            onChange={(e) => setDeckCode(e.target.value)}
-            style={{ width: 320 }}
-          />
+        <div className="small">
+          Runes:{" "}
+          {opponent
+            ? `🔥${opponent.runes.fire || 0} 💧${opponent.runes.water || 0} 🌿${opponent.runes.grass || 0}`
+            : "-"}
         </div>
       </div>
 
-      <div className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginTop: 12 }}>
-        {/* Opponent Divine (left) */}
-        <div className="divine-box card">
-          <div className="small">Opponent Divine</div>
-          {opponent && <img src={getCardInfo(opponent.divine).image || "/cards/placeholder.png"} alt="" className="card-img" />}
-          <div style={{ marginTop: 8, fontWeight: 700 }}>{opponent ? getCardInfo(opponent.divine).name : "-"}</div>
-          <div className="small" style={{ marginTop: 6 }}>
-            HP: {opponent ? opponent.divineHP : "-"}
-          </div>
-          <div className="small">
-            Runes: {opponent ? `🔥${opponent.runes.fire || 0} 💧${opponent.runes.water || 0} 🌿${opponent.runes.grass || 0}` : "-"}
-          </div>
-        </div>
-
-        {/* Center engage zone: opponent card -> engage area -> your card */}
-        <div style={{ flex: 1, marginLeft: 12, marginRight: 12 }} className="card">
-          <div className="engage-zone" style={{ justifyContent: "space-between" }}>
-            {/* Opponent card area (left of center) */}
-            <div style={{ textAlign: "center", width: "24%" }}>
-              <div className="small">Opponent Card</div>
-              <div style={{ marginTop: 8 }}>{renderOpponentCard()}</div>
-              <div className="small" style={{ marginTop: 8 }}>
-                {engageMap[opponent?.id] ? getCardInfo(engageMap[opponent.id]).name : ""}
-              </div>
-            </div>
-
-            {/* Engage center */}
-            <div style={{ textAlign: "center", width: "30%" }}>
-              <div className="small">Engage Zone</div>
-              <div className="small">Cards clash here</div>
-              <div style={{ height: 36 }} />
-            </div>
-
-            {/* Your card area (right of center) */}
-            <div style={{ textAlign: "center", width: "24%" }}>
-              <div className="small">Your Card</div>
-              <div style={{ marginTop: 8 }}>{renderMyCard()}</div>
-              <div className="small" style={{ marginTop: 8 }}>
-                {engageMap[me?.id] ? getCardInfo(engageMap[me.id]).name : pending[me?.id] ? getCardInfo(pending[me.id]).name : ""}
-              </div>
-            </div>
+      {/* Engage zone — horizontally aligned: Opponent card | Engage area | Your card + Divine */}
+      <div
+        style={{
+          flex: 1,
+          marginLeft: 12,
+          marginRight: 12,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+        className="card"
+      >
+        {/* Opponent card */}
+        <div style={{ textAlign: "center", width: "25%" }}>
+          <div className="small">Opponent Card</div>
+          <div style={{ marginTop: 8 }}>{renderOpponentCard()}</div>
+          <div className="small" style={{ marginTop: 8 }}>
+            {engageMap[opponent?.id]
+              ? getCardInfo(engageMap[opponent.id]).name
+              : ""}
           </div>
         </div>
 
-        {/* Your Divine (right) */}
-        <div className="divine-box card">
-          <div className="small">Your Divine</div>
-          {me && <img src={getCardInfo(me.divine).image || "/cards/placeholder.png"} alt={me.divine} className="card-img" />}
-          <div style={{ marginTop: 8, fontWeight: 700 }}>{me ? getCardInfo(me.divine).name : "-"}</div>
-          <div className="small" style={{ marginTop: 6 }}>
-            HP: {me ? me.divineHP : "-"}
+        {/* Engage center */}
+        <div style={{ textAlign: "center", width: "30%" }}>
+          <div className="small">Engage Zone</div>
+          <div className="small">Cards clash here</div>
+        </div>
+
+        {/* Your card + Your divine on same line */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 16,
+            justifyContent: "flex-end",
+            width: "35%",
+          }}
+        >
+          <div style={{ textAlign: "center" }}>
+            <div className="small">Your Card</div>
+            <div style={{ marginTop: 8 }}>{renderMyCard()}</div>
+            <div className="small" style={{ marginTop: 8 }}>
+              {engageMap[me?.id]
+                ? getCardInfo(engageMap[me.id]).name
+                : pending[me?.id]
+                ? getCardInfo(pending[me.id]).name
+                : ""}
+            </div>
           </div>
-          <div className="small">Runes: {me ? `🔥${me.runes.fire || 0} 💧${me.runes.water || 0} 🌿${me.runes.grass || 0}` : "-"}</div>
+
+          <div className="divine-box card" style={{ textAlign: "center", padding: 8 }}>
+            <div className="small">Your Divine</div>
+            {me && (
+              <img
+                src={getCardInfo(me.divine).image}
+                alt={me.divine}
+                className="card-img"
+                style={{ width: 100 }}
+              />
+            )}
+            <div style={{ marginTop: 4, fontWeight: 700 }}>
+              {me ? getCardInfo(me.divine).name : "-"}
+            </div>
+            <div className="small" style={{ marginTop: 2 }}>
+              HP: {me ? me.divineHP : "-"}
+            </div>
+            <div className="small">
+              Runes:{" "}
+              {me
+                ? `🔥${me.runes.fire || 0} 💧${me.runes.water || 0} 🌿${me.runes.grass || 0}`
+                : "-"}
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Hand and Log remain unchanged below */}
+      ...
+
+
 
       {/* Hand (single row) */}
       <div className="card" style={{ marginTop: 12 }}>
