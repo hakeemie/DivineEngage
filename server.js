@@ -24,18 +24,22 @@ function shuffle(arr){ for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.
 
 function findCard(id) {
   if (!id) return null;
-
   const lowerId = id.toString().toLowerCase();
 
-  // Search through divines and all follower types
-  const match =
-    CARDS.divines.find(d => d.id.toLowerCase() === lowerId) ||
-    CARDS.followers.fire.find(f => f.id.toLowerCase() === lowerId) ||
-    CARDS.followers.water.find(w => w.id.toLowerCase() === lowerId) ||
-    CARDS.followers.grass.find(g => g.id.toLowerCase() === lowerId);
+  // Defensive: ensure followers exists, even if missing
+  const followers = CARDS.followers || {};
+  const allFollowerGroups = Object.values(followers).flat();
 
-  return match || null;
+  // Combine divines + all followers into one searchable list
+  const allCards = [
+    ...(CARDS.divines || []),
+    ...allFollowerGroups
+  ];
+
+  // Perform case-insensitive lookup
+  return allCards.find(c => c.id.toLowerCase() === lowerId) || null;
 }
+
 
 function decodeDeck(code){ try{ let pad = code.length % 4; if(pad) code += '='.repeat(4-pad); return JSON.parse(Buffer.from(code,'base64').toString('utf8')); }catch(e){ return null; } }
 
