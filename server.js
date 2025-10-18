@@ -95,29 +95,51 @@ io.on('connection', socket=>{
     io.to(roomId).emit('roomUpdate', summarize(roomId));
   });
 
-  // NEW: pending confirm handling
-  socket.on('playerConfirm', ({roomId, card}, cb)=>{
-    const r = rooms[roomId]; if(!r) return cb && cb({error:'room not found'});
-    if(!r.players[socket.id]) return cb && cb({error:'not in room'});
-    const p = r.players[socket.id];
-    if(!p.hand.includes(card)) return cb && cb({error:'card not in hand'});
-    // remove from hand and set pending
-    p.hand = p.hand.filter(c=> c !== card);
-    r.pending[socket.id] = card;
-    io.to(roomId).emit('roomUpdate', summarize(roomId));
-    // if both players pending, reveal and resolve after 5s
-    const playerIds = Object.keys(r.players).filter(id=> !r.players[id].isBot);
-    const allPending = playerIds.length === Object.keys(r.pending).length && playerIds.every(id=> r.pending[id]);
-    if(allPending){
-      // reveal
-      r.engage = {...r.pending};
-      r.pending = {};
-      io.to(roomId).emit('roomUpdate', summarize(roomId));
-      // wait 5 seconds, then resolve
-      setTimeout(()=>{ resolveEngage(roomId); }, 5000);
-    }
-    cb && cb({ok:true});
-  });
+socket.on("playerConfirm", ({ roomId, card }, cb) => {
+  const r = rooms[roomId];
+  if (!r) return cb && cb({ error: "room not found" });
+  const player = r.players[socket.id];
+  if (!player) return cb && cb({ error: "not in room" });
+
+  // validate card
+  if (!player.hand.includes(card))
+    return cb && cb({ error: `card "${card}" not in hand` });
+
+  // remove from hand & set pending
+  player.hand = player.hand.filter((c) => c !== card);
+  r.pending[socket.id] = card;
+
+  io.to(roomId).emit("roomUpdate", summarize(roomId));
+
+  // check if all human players have confirmed
+  const playerIds = Object.keys(r.players).filter((id) => !r.players[id].isBot);
+  const allPending =
+    playerIds.length === Object.keys(r.pending).length &&
+    playerIds.every((id) => r.pending[id]);
+
+  if (allPending) {
+    console.log(`🃏 All players confirmed in ${roomId}, engaging...`);
+    r.engage = { ...r.pending };
+    r.pending = {};
+    io.to(roomId).emit("roomUpdate", summarize(roomId));
+
+    setTimeout(() => {
+      try {
+        resolveEngage(roomId);
+      } catch (err) {
+        console.error("❌ Error in resolveEngage:", err);
+        if (rooms[roomId]) {
+          rooms[roomId].table.push({
+            system: `❌ An error occurred resolving the round: ${err.message}`,
+          });
+          io.to(roomId).emit("roomUpdate", summarize(roomId));
+        }
+      }
+    }, 5000);
+  }
+
+  cb && cb({ ok: true });
+});
 
   socket.on('disconnecting', ()=>{
     for(const roomId of Object.keys(socket.rooms)){
