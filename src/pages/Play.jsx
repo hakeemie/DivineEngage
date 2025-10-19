@@ -1,191 +1,198 @@
-// src/pages/Play.jsx
-import React, { useState, useEffect } from "react";
-import { io } from "socket.io-client";
-import { decodeDeck } from "../utils/base64.js";
-import { getCardArt } from "../utils/cardUtils.js";
+import React, { useEffect, useState } from "react";
+import io from "socket.io-client";
 import cardsData from "../data/cards.js";
 
-let socket = null;
+const socket = io({ transports: ["websocket"] });
+
+// -----------------------------
+// Local Card Helpers (no utils file needed)
+// -----------------------------
+
+/** Find a card by ID */
+function findCard(cardId) {
+  if (!cardId) return null;
+
+  // merge divines and followers for lookup
+  const divines = Array.isArray(cardsData.divines) ? cardsData.divines : [];
+  const followersGroups = cardsData.followers || {};
+  const allFollowers = Object.values(followersGroups).flat();
+
+  const allCards = [...divines, ...allFollowers];
+  return allCards.find((c) => c.id === cardId) || null;
+}
+
+/** Return card art or fallback image */
+function getCardArt(cardId) {
+  const card = findCard(cardId);
+  if (card && card.art) return card.art;
+  return "/assets/cards/default.png"; // fallback placeholder
+}
+
+// -----------------------------
+// Play Page Component
+// -----------------------------
 
 export default function Play() {
-  const [socketConnected, setSocketConnected] = useState(false);
   const [room, setRoom] = useState(null);
-  const [deckCode, setDeckCode] = useState("");
-  const [roomCode, setRoomCode] = useState("");
+  const [status, setStatus] = useState("Connecting...");
   const [selectedCard, setSelectedCard] = useState(null);
-  const [hasJoined, setHasJoined] = useState(false); // NEW
+  const [hand, setHand] = useState([]);
+  const [playerId, setPlayerId] = useState(null);
+  const [confirming, setConfirming] = useState(false);
+
+  // ✅ only show "waiting" after a room actually exists
+  const showWaiting = !room && status === "Waiting for room data or connection...";
 
   useEffect(() => {
-    if (!socket) {
-      socket = io(window.location.origin.replace(/^http/, "ws"));
-      socket.on("connect", () => setSocketConnected(true));
-      socket.on("disconnect", () => setSocketConnected(false));
-      socket.on("roomUpdate", (data) => {
-        setRoom(data);
-      });
-    }
+    setPlayerId(socket.id);
+
+    socket.on("connect", () => {
+      setStatus("Connected to server");
+    });
+
+    socket.on("roomUpdate", (data) => {
+      setRoom(data);
+      setStatus("In room");
+    });
+
+    socket.on("errorMsg", (msg) => {
+      console.error(msg);
+      setStatus(msg);
+    });
+
+    socket.on("roomCreated", ({ roomId }) => {
+      setStatus(`Room ${roomId} created`);
+    });
+
+    return () => {
+      socket.off("connect");
+      socket.off("roomUpdate");
+      socket.off("errorMsg");
+      socket.off("roomCreated");
+    };
   }, []);
 
-  function createRoom() {
-    if (!deckCode) return alert("Enter a deck code first!");
-    socket.emit("createRoom", { deck: deckCode }, (res) => {
-      if (res?.error) return alert(res.error);
-      setRoom(res.room);
-      setHasJoined(true); // NEW
-    });
-  }
+  const handleSelectCard = (cardId) => {
+    setSelectedCard((prev) => (prev === cardId ? null : cardId));
+  };
 
-  function joinRoom() {
-    if (!deckCode || !roomCode) return alert("Enter both deck and room codes!");
-    socket.emit("joinRoom", { roomId: roomCode, deck: deckCode }, (res) => {
-      if (res?.error) return alert(res.error);
-      setRoom(res.room);
-      setHasJoined(true); // NEW
-    });
-  }
+  const handleConfirm = () => {
+    if (!room || !selectedCard) return;
+    setConfirming(true);
 
-  function confirmCard(card) {
-    if (!room) return;
-    setSelectedCard(card);
-    socket.emit("playerConfirm", { roomId: room.id, card }, (res) => {
-      if (res?.error) return alert(res.error);
-    });
-  }
+    socket.emit(
+      "playerConfirm",
+      { roomId: room.id, card: selectedCard },
+      (res) => {
+        setConfirming(false);
+        if (res?.error) setStatus(`Error: ${res.error}`);
+        else setSelectedCard(null);
+      }
+    );
+  };
 
-  // conditionally render join/create UI
-  if (!hasJoined) {
+  // -----------------------------
+  // UI Sections
+  // -----------------------------
+
+  if (!room)
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-gray-900 text-white gap-6">
-        <h1 className="text-3xl font-bold mb-4">Match Setup</h1>
-        <div className="flex flex-col gap-3 w-80">
-          <input
-            type="text"
-            placeholder="Enter deck code"
-            value={deckCode}
-            onChange={(e) => setDeckCode(e.target.value)}
-            className="p-2 rounded bg-gray-800 text-white border border-gray-700"
-          />
-          <button
-            onClick={createRoom}
-            className="p-2 bg-green-600 hover:bg-green-700 rounded font-semibold"
-          >
-            Create Room
-          </button>
-          <input
-            type="text"
-            placeholder="Enter room code"
-            value={roomCode}
-            onChange={(e) => setRoomCode(e.target.value)}
-            className="p-2 rounded bg-gray-800 text-white border border-gray-700"
-          />
-          <button
-            onClick={joinRoom}
-            className="p-2 bg-blue-600 hover:bg-blue-700 rounded font-semibold"
-          >
-            Join Room
-          </button>
-        </div>
+      <div className="flex flex-col items-center justify-center h-screen text-white bg-gray-900">
+        <p className="text-xl font-semibold">
+          {status === "Connecting..." ? status : "Waiting for room data or connection..."}
+        </p>
       </div>
     );
-  }
 
-  // waiting state — only shown AFTER join/create
-  if (!room || !socketConnected) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-gray-900 text-white">
-        Waiting for room data or connection...
-      </div>
-    );
-  }
-
-  const me = room?.me;
-  const opponent = room?.opponent;
+  const player = room.players?.find((p) => p.id === playerId);
+  const opponent = room.players?.find((p) => p.id !== playerId);
 
   return (
-    <div className="h-screen w-screen bg-gray-900 text-white flex flex-col">
-      {/* Header */}
-      <div className="p-4 bg-gray-800 text-center text-xl font-bold border-b border-gray-700">
-        Room: {room.id} | {me?.name ?? "You"} vs {opponent?.name ?? "Waiting..."}
-      </div>
+    <div className="min-h-screen bg-gradient-to-b from-gray-800 to-gray-950 text-white flex flex-col items-center">
+      <h1 className="text-2xl mt-4 mb-2 font-bold">Battle Arena</h1>
+      <p className="text-gray-400 mb-4">{status}</p>
 
-      {/* Engage Zone */}
-      <div className="flex-1 flex flex-col justify-center items-center relative">
-        <div className="w-full flex justify-center items-center relative border-y border-gray-700 py-8">
-          {/* Player’s engage zone */}
+      <div className="flex flex-col items-center space-y-6 w-full max-w-5xl">
+        {/* Opponent section */}
+        {opponent && (
           <div className="flex flex-col items-center">
-            <div className="text-sm mb-2">{me?.name ?? "You"}</div>
-            {room.engage?.[me?.id] ? (
-              <img
-                src={getCardArt(room.engage[me.id])}
-                alt="your card"
-                className="w-32 h-48 rounded shadow-lg"
-              />
-            ) : (
-              <div className="w-32 h-48 rounded bg-gray-800 border border-gray-700 flex items-center justify-center">
-                Select a card
-              </div>
-            )}
-            {me?.divine && (
-              <img
-                src={getCardArt(me.divine)}
-                alt="your divine"
-                className="absolute right-[30%] w-24 h-24 rounded-full border-2 border-yellow-400"
-              />
-            )}
+            <h2 className="text-lg font-semibold">{opponent.name || "Opponent"}</h2>
+            <p className="text-sm text-gray-400 mb-2">
+              HP: {opponent.divineHP ?? "?"}
+            </p>
+            <img
+              src={getCardArt(opponent.divine)}
+              alt="Opponent Divine"
+              className="h-40 rounded-lg border border-gray-600 shadow-lg"
+            />
           </div>
+        )}
 
-          {/* Divider line */}
-          <div className="h-64 border-l border-gray-700 mx-16" />
-
-          {/* Opponent’s engage zone */}
-          <div className="flex flex-col items-center">
-            <div className="text-sm mb-2">{opponent?.name ?? "Opponent"}</div>
-            {room.engage?.[opponent?.id] ? (
-              <img
-                src={getCardArt(room.engage[opponent.id])}
-                alt="opponent card"
-                className="w-32 h-48 rounded shadow-lg"
-              />
-            ) : (
-              <div className="w-32 h-48 rounded bg-gray-800 border border-gray-700 flex items-center justify-center">
-                Waiting...
+        {/* Battle log */}
+        <div className="w-full max-h-48 overflow-y-auto bg-gray-800/70 p-4 rounded-lg shadow-inner text-sm">
+          {room.table?.length > 0 ? (
+            room.table.map((entry, idx) => (
+              <div key={idx} className="text-gray-200">
+                {entry.system || JSON.stringify(entry)}
               </div>
-            )}
-            {opponent?.divine && (
-              <img
-                src={getCardArt(opponent.divine)}
-                alt="opponent divine"
-                className="absolute left-[30%] w-24 h-24 rounded-full border-2 border-blue-400"
-              />
-            )}
+            ))
+          ) : (
+            <div className="text-gray-500 italic">No events yet...</div>
+          )}
+        </div>
+
+        {/* Player section */}
+        {player && (
+          <div className="flex flex-col items-center space-y-3">
+            <h2 className="text-lg font-semibold">{player.name || "You"}</h2>
+            <p className="text-sm text-gray-400 mb-2">
+              HP: {player.divineHP ?? "?"}
+            </p>
+            <img
+              src={getCardArt(player.divine)}
+              alt="Your Divine"
+              className="h-40 rounded-lg border border-gray-600 shadow-lg"
+            />
           </div>
+        )}
+
+        {/* Player hand */}
+        <div className="flex flex-wrap justify-center gap-3 mt-6">
+          {player?.hand?.length ? (
+            player.hand.map((cardId) => (
+              <div
+                key={cardId}
+                onClick={() => handleSelectCard(cardId)}
+                className={`cursor-pointer border-2 rounded-lg transition-transform duration-200 ${
+                  selectedCard === cardId
+                    ? "border-yellow-400 scale-110"
+                    : "border-gray-700 hover:scale-105"
+                }`}
+              >
+                <img
+                  src={getCardArt(cardId)}
+                  alt={cardId}
+                  className="h-32 w-24 object-cover rounded-md"
+                />
+              </div>
+            ))
+          ) : (
+            <div className="text-gray-500 italic">No cards in hand</div>
+          )}
         </div>
 
-        {/* Table Messages */}
-        <div className="mt-6 w-3/4 bg-gray-800 rounded p-3 h-32 overflow-y-auto text-sm border border-gray-700">
-          {room.table?.map((entry, i) => (
-            <div key={i}>{entry.system}</div>
-          ))}
-        </div>
-
-        {/* Player Hand (now below engage zone) */}
-        <div className="flex justify-center gap-3 mt-6 flex-wrap">
-          {me?.hand?.map((card) => (
-            <div
-              key={card}
-              onClick={() => confirmCard(card)}
-              className={`cursor-pointer transition-transform hover:scale-105 ${
-                selectedCard === card ? "ring-2 ring-green-400" : ""
-              }`}
-            >
-              <img
-                src={getCardArt(card)}
-                alt={card}
-                className="w-24 h-36 rounded"
-              />
-            </div>
-          ))}
-        </div>
+        {/* Confirm button */}
+        <button
+          onClick={handleConfirm}
+          disabled={!selectedCard || confirming}
+          className={`mt-4 px-6 py-2 rounded-lg font-semibold transition ${
+            !selectedCard || confirming
+              ? "bg-gray-700 text-gray-400 cursor-not-allowed"
+              : "bg-yellow-500 hover:bg-yellow-400 text-black"
+          }`}
+        >
+          {confirming ? "Confirming..." : "Confirm Card"}
+        </button>
       </div>
     </div>
   );
